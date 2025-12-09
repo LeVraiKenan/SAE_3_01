@@ -1,0 +1,175 @@
+@startuml Diagramme de Classes - Analyse
+
+!theme plain
+skinparam classBackgroundColor #E3F2FD
+skinparam classBorderColor #1976D2
+skinparam classArrowColor #1976D2
+
+package "Model" {
+    
+    enum Statut {
+        A_FAIRE
+        BLOQUEE
+        EN_COURS
+        TERMINEE
+        ARCHIVEE
+    }
+    
+    enum Priorite {
+        BASSE
+        NORMALE
+        HAUTE
+        URGENTE
+    }
+    
+    class Task {
+        id
+        titre
+        description
+        statut
+        priorite
+        dateDebut
+        dateFin
+        creer()
+        editer()
+        changerStatut()
+        ajouterSousTache()
+        supprimerSousTache()
+        getSousTaches()
+        estArchivee()
+    }
+    
+    class Dependency {
+        id
+        source
+        cible
+        type
+        creer()
+        valider()
+        estSatisfaite()
+        supprimer()
+    }
+    
+    enum TypeDependance {
+        BLOQUE_PAR
+        DEPEND_DE
+        PRECEDENCE
+    }
+    
+    Task "1" --o "*" Task : contient
+    Task "1" <-- "*" Dependency : source
+    Task "1" <-- "*" Dependency : cible
+    Dependency --> TypeDependance
+    Task --> Statut
+    Task --> Priorite
+}
+
+package "View" {
+    
+    class Board {
+        colonnes
+        taches
+        creerColonne()
+        supprimerColonne()
+        obtenirColonnes()
+        obtenirTaches()
+        deplacerTache()
+    }
+    
+    class Column {
+        nom
+        taches
+        ordre
+        ajouterTache()
+        supprimerTache()
+        obtenirTaches()
+        estValide()
+    }
+    
+    class ListView {
+        taches
+        afficherHierarchie()
+        deplierTache()
+        replierTache()
+        afficherSousTaches()
+        mettreAJourAffichage()
+    }
+    
+    class DetailView {
+        tacheSelectionnee
+        afficherDetail()
+        afficherDescription()
+        afficherDependances()
+        afficherSousTaches()
+        afficherHistorique()
+    }
+    
+    Column "1" --> "*" Task : contient
+    Board "1" --> "*" Column : possède
+    Board --> ListView
+    Board --> DetailView
+    ListView --> Task
+    DetailView --> Task
+}
+
+package "Service" {
+    
+    class GanttService {
+        tachesSelectionnees
+        selectionnerTaches()
+        genererDiagramme()
+        calculerChronologie()
+        exporterPDF()
+        exporterImage()
+    }
+    
+    class GanttDiagram {
+        taches
+        chronologie
+        construire()
+        afficher()
+        exporterFormat()
+    }
+    
+    class Periode {
+        dateDebut
+        dateFin
+        duree
+        calculerDuree()
+        chevauche()
+        contient()
+    }
+    
+    class DependencyService {
+        creerDependance()
+        validerGraphe()
+        detectorCycles()
+        obtenirDependances()
+        calculerChainesBloquantes()
+    }
+    
+    class ArchiveService {
+        archivees
+        archiver()
+        restaurer()
+        obtenirArchives()
+        supprimerDefinitif()
+        viderArchive()
+    }
+    
+    class NotificationService {
+        notifierChangement()
+        notifierBloquage()
+        notifierTerminaison()
+    }
+    
+    GanttService --> Task : utilise
+    GanttService --> GanttDiagram : genere
+    GanttDiagram --> Periode
+    DependencyService --> Task
+    DependencyService --> Dependency
+    ArchiveService --> Task : gere
+    NotificationService --> Task
+}
+
+@enduml

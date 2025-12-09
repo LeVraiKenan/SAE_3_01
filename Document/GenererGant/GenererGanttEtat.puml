@@ -1,0 +1,73 @@
+@startuml Diagramme d'États - Génération Gantt
+
+!theme plain
+skinparam stateBackgroundColor #E1F5FE
+skinparam stateBorderColor #1976D2
+skinparam stateArrowColor #1976D2
+skinparam startColor #4CAF50
+skinparam endColor #F44336
+
+[*] --> Vierge
+
+state Vierge
+    note right: Aucune tâche sélectionnée\ndo: Afficher panneau vide
+
+
+state EnSelection
+    note right: Utilisateur en train de sélectionner\nentry: Activer multi-select\nexit: Valider sélection
+
+
+state Validation
+    note right: Vérification des dépendances\ndo: Analyser graphe de tâches
+
+
+state ErreurDependance
+    note right: Dépendances circulaires détectées\ndo: Afficher message d'erreur\nexit: Proposer correction
+
+
+state Calcul
+    note right: Calcul de la chronologie\ndo: Extraire dates, durées\nexit: Structure prête
+
+
+state Genere
+    note right: Gantt construit en mémoire\ndo: Générer barres et axes\nexit: Prêt pour affichage
+
+
+state Affiche
+    note right: Diagramme visible à l'écran\nentry: Rendu UI\nexit: Préparé pour export
+
+
+state Export
+    note right: Exportation en cours\ndo: Sérialiser (PDF/PNG/SVG)
+
+
+state Termine
+    note right: Fichier généré ou affichage terminé\ndo: Confirmer utilisateur
+
+
+' Transitions flux principal
+Vierge --> EnSelection : cliquerGenerateGantt
+EnSelection --> Validation : validerSelection [taches > 0]
+EnSelection --> Vierge : annuler
+
+Validation --> ErreurDependance : dependanceCirculaire()
+Validation --> Calcul : dependancesOK()
+
+ErreurDependance --> EnSelection : corriger
+note on link
+  Retour à la sélection pour
+  exclure la tâche conflictuelle
+end note
+
+Calcul --> Genere : chronologieCalculee()
+
+Genere --> Affiche : rendreDiagramme()
+
+Affiche --> Export : demanderExport()
+Affiche --> Vierge : fermer
+
+Export --> Termine : fichierGenere()
+
+Termine --> [*] : quitter
+
+@enduml

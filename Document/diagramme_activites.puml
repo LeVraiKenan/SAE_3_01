@@ -1,0 +1,83 @@
+@startuml Diagramme d'Activités - Flux Global
+
+!theme plain
+skinparam activityBackgroundColor #BBDEFB
+skinparam activityBorderColor #1976D2
+skinparam startColor #4CAF50
+skinparam endColor #F44336
+skinparam arrowColor #1976D2
+
+start
+
+:Utilisateur ouvre l'application;
+
+:Affiche vue principale;
+
+:Menu d'accueil;
+
+if (Action souhaitée ?) then (Créer tâche)
+    :Saisie titre, description, dates;
+    :Définir statut et priorité;
+    
+    if (Ajouter dépendances ?) then (Oui)
+        :Sélectionner tâches bloquantes;
+        :Valider dépendances;
+    else (Non)
+        :Créer directement;
+    endif
+    
+    :Tâche ajoutée au modèle;
+    
+else if (Visualiser) then (Choisir vue)
+    if (Type de vue ?) then (Trello)
+        :Afficher colonnes (À faire / En cours / Terminé / Archivé);
+        
+        if (Déplacer tâche ?) then (Oui)
+            :Drag & Drop vers colonne cible;
+            :Vérifier dépendances;
+            
+            if (Dépendances satisfaites ?) then (Oui)
+                :Déplacer la tâche;
+                :Mettre à jour statut;
+            else (Non)
+                :Afficher erreur "Dépendances non satisfaites";
+                :Tâche reste Bloquée;
+            endif
+        else (Non)
+            :Rester en Trello;
+        endif
+        
+    else if (Liste)
+        :Afficher hiérarchie tâches → sous-tâches;
+        :Permettre dépliage/repliage;
+    endif
+    
+else if (Détail) then (Voir détail tâche)
+    :Clic sur une tâche;
+    :Afficher fenêtre détail;
+    :Montrer description, dépendances, sous-tâches;
+    
+else if (Archive) then (Archiver tâche)
+    :Déplacer tâche en archive;
+    :Mettre à jour statut → Archivée;
+    
+    if (Restaurer ?) then (Oui)
+        :Restaurer tâche;
+        :Retour à statut précédent;
+    else (Non)
+        :Rester archivée;
+    endif
+    
+else if (Gantt) then (Générer Gantt)
+    :Sélectionner plusieurs tâches;
+    :Extraire dates début/fin;
+    :Générer chronologie;
+    :Afficher diagramme Gantt;
+endif
+
+:Retour menu principal;
+
+:Quitter application;
+stop
+
+@enduml

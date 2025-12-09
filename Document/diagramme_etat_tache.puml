@@ -1,0 +1,63 @@
+@startuml Diagramme d'État - Cycle de Vie d'une Tâche (Révisé)
+
+!theme plain
+skinparam stateBackgroundColor #BBDEFB
+skinparam stateBorderColor #1976D2
+skinparam stateArrowColor #1976D2
+skinparam startColor #4CAF50
+skinparam endColor #F44336
+
+[*] --> AFaire
+
+state AFaire
+    note right: État initial après création\nentry: Initialiser la tâche\nexit: Passer au statut suivant
+
+state Bloquee
+    note right: Dépendance bloquante détectée\ndo: Attendre la résolution\nexit: Dépendance résolue
+
+state EnCours
+    note right: Utilisateur a lancé la tâche\nentry: Mettre à jour la progression\nexit: Finaliser les travaux
+
+state Terminee
+    note right: Tâche complétée avec succès\ndo: Validation finale\nexit: Préparer l'archivage
+
+state Archivee
+    note right: Tâche archivée\ndo: Archiver les données\nexit: Restauration
+
+' Transitions principales (flux de progression)
+AFaire --> Bloquee : detectionDependance
+AFaire --> EnCours : lancerTache
+EnCours --> Terminee : validerTerminaison
+Terminee --> Archivee : archiverTache
+
+' Transitions de correction/révision
+Bloquee --> AFaire : resolutionDependance
+note on link
+  La tâche redevient
+  sélectionnable
+end note
+
+EnCours --> Bloquee : ajouterDependance
+note on link
+    Ajout a posteriori d'une dépendance
+end note
+EnCours --> AFaire : suspendre/reporter
+note on link
+  Changement de priorité
+     ou erreur de manip
+end note
+
+Terminee --> AFaire : rejeter
+note on link
+  Tâche mal faite
+     ou rejetée par le client
+end note
+
+
+' Restauration simple
+Archivee --> AFaire : restaurerTache
+
+' État final (suppression permanente)
+Archivee --> [*] : supprimerDefinitif
+
+@enduml

@@ -1,0 +1,58 @@
+@startuml Diagramme de Cas d'Utilisation - Gestionnaire de Tâches
+
+!theme plain
+skinparam actorBackgroundColor #E1F5FE
+skinparam usecaseBackgroundColor #FFF9C4
+skinparam usecaseBorderColor #1976D2
+skinparam arrowColor #1976D2
+
+actor Utilisateur as user
+
+rectangle "Gestionnaire de Tâches" {
+    usecase "Créer tâche" as UC1
+    usecase "Créer sous-tâche" as UC2
+    usecase "Éditer tâche" as UC3
+    usecase "Supprimer tâche" as UC4
+    usecase "Gérer dépendances" as UC5
+    usecase "Visualiser Trello" as UC6
+    usecase "Visualiser Liste" as UC7
+    usecase "Déplacer tâche (Drag & Drop)" as UC8
+    usecase "Archiver tâche" as UC9
+    usecase "Restaurer tâche" as UC10
+    usecase "Voir détail tâche" as UC11
+    usecase "Générer diagramme Gantt" as UC12
+}
+
+' Relations acteur
+user --> UC1
+user --> UC3
+user --> UC4
+user --> UC5
+user --> UC6
+user --> UC7
+user --> UC8
+user --> UC9
+user --> UC10
+user --> UC11
+user --> UC12
+user --> UC2
+
+' Include : Créer sous-tâche inclut Créer tâche
+UC2 ..|> UC1 : <<include>>
+
+' Extend : Restaurer extends Archiver
+UC10 ..|> UC9 : <<extend>>
+
+' Extend : Déplacer tâche extends Visualiser Kanban
+UC8 ..|> UC6 : <<extend>>
+
+' Association : Gérer dépendances et Créer tâche
+UC5 -- UC1 : peut être appliquée à
+
+' Association : Voir détail et tâche
+UC11 -- UC1 : affiche les infos de
+
+' Association : Générer Gantt utilise plusieurs tâches
+UC12 -- UC8 : requiert
+
+@enduml

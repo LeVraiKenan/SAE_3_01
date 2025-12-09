@@ -1,0 +1,68 @@
+@startuml Diagramme de Séquence - Générer Gantt
+
+!theme plain
+skinparam sequenceArrowColor #1976D2
+skinparam actorBackgroundColor #E1F5FE
+skinparam participantBackgroundColor #BBDEFB
+skinparam participantBorderColor #1976D2
+
+actor Utilisateur as user
+participant "UI (Board)" as ui
+participant "GanttService" as service
+participant "TaskRepository" as repo
+participant "DependencyService" as depService
+participant "GanttDiagram" as diagram
+
+user -> ui: Clic sur "Générer Gantt"
+activate ui
+
+ui -> ui: Afficher panneau sélection
+
+user -> ui: Sélectionner tâches (multi-select)
+note right: L'utilisateur choisit 1+ tâches
+
+ui -> ui: Afficher bouton "Générer"
+
+user -> ui: Clic "Générer"
+activate service
+
+ui -> service: genererDiagramme(taches_selectionnees)
+
+service -> depService: validerDependances(taches)
+activate depService
+depService --> service: Boolean (ok ou erreur)
+deactivate depService
+
+alt Dépendances invalides
+    service --> ui: Erreur "Dépendances circulaires"
+    ui --> user: Afficher message erreur
+else OK
+
+    service -> service: calculerChronologie()
+    note right: Extraire dates début/fin\nde chaque tâche
+
+    service -> diagram: construire(taches, chronologie)
+    activate diagram
+
+    diagram -> diagram: genererBarres()
+    diagram -> diagram: ordonner()
+
+    diagram --> service: GanttDiagram construit
+    deactivate diagram
+
+    service --> ui: Retourner GanttDiagram
+
+    ui -> ui: afficherDiagramme(diagram)
+    ui --> user: Afficher Gantt généré
+
+    user -> ui: Clic "Exporter"
+    ui -> diagram: exporterFormat(PDF/PNG)
+    diagram --> ui: Fichier généré
+    ui --> user: Télécharger fichier
+
+end
+
+deactivate ui
+deactivate service
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml Diagramme d'Activités - Générer Gantt
+
+!theme plain
+skinparam activityBackgroundColor #BBDEFB
+skinparam activityBorderColor #1976D2
+skinparam startColor #4CAF50
+skinparam endColor #F44336
+skinparam arrowColor #1976D2
+skinparam decisionBackgroundColor #FFF9C4
+
+start
+
+:Utilisateur ouvre vue Gantt;
+
+:Afficher panneau de sélection;
+
+:Utilisateur sélectionne tâches (multi-select);
+
+if (Tâches sélectionnées ?) then (Oui)
+
+    :Clic sur "Générer";
+
+    :Récupérer liste de tâches;
+
+    :Valider dépendances (cycles ?);
+
+    if (Dépendances valides ?) then (Non)
+        :Afficher erreur "Dépendances circulaires";
+        :Demander nouvelle sélection;
+        --> Utilisateur sélectionne tâches;
+    else (Oui)
+
+        :Extraire dates début/fin pour chaque tâche;
+
+        :Calculer durée de chaque tâche;
+
+        if (Y a-t-il des dépendances ?) then (Oui)
+            :Identifier tâches bloquantes;
+            :Calculer marges (chemin critique);
+        else (Non)
+            :Tâches indépendantes;
+        endif
+
+        :Générer structure Gantt (barres + axes);
+
+        :Ordonner tâches par date de début;
+
+        :Afficher diagramme Gantt à l'écran;
+
+        if (Utilisateur demande export ?) then (Oui)
+
+            if (Format ?) then (PDF)
+                :Exporter en PDF;
+            else if (PNG)
+                :Exporter en PNG;
+            else (SVG)
+                :Exporter en SVG;
+            endif
+
+            :Sauvegarder fichier;
+            :Afficher confirmation;
+
+        else (Non)
+            :Affichage simple;
+        endif
+
+    endif
+
+else (Non)
+    :Afficher message "Sélectionnez au moins une tâche";
+endif
+
+:Retour à la vue principale;
+
+stop
+
+@enduml
