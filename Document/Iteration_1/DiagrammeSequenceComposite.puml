@@ -1,0 +1,49 @@
+@startuml
+Title Iteration 1 - Composite Pattern
+
+participant Utilisateur
+participant TaskFactory
+participant TaskPrincipal
+participant TaskSousTache1
+participant TaskSousTache2
+
+Utilisateur -> TaskFactory: creerTask("Développement", HAUTE)
+activate TaskFactory
+TaskFactory -> TaskPrincipal: new Task("Développement", HAUTE, ...)
+activate TaskPrincipal
+TaskPrincipal -> TaskPrincipal: sousTaches = [ ]
+TaskPrincipal --> TaskFactory: void
+deactivate TaskPrincipal
+TaskFactory --> Utilisateur: void
+deactivate TaskFactory
+
+Utilisateur -> TaskFactory: creerTask("Backend", NORMALE)
+activate TaskFactory
+TaskFactory -> TaskSousTache1: new Task("Backend", NORMALE, ...)
+deactivate TaskFactory
+deactivate TaskSousTache1
+
+Utilisateur -> TaskFactory: creerTask("Frontend", NORMALE)
+activate TaskFactory
+TaskFactory -> TaskSousTache2: new Task("Frontend", NORMALE, ...)
+deactivate TaskFactory
+deactivate TaskSousTache2
+
+Utilisateur -> TaskPrincipal: ajouterSousTache(TaskSousTache1)
+activate TaskPrincipal
+TaskPrincipal -> TaskPrincipal: sousTaches.add(TaskSousTache1)
+TaskPrincipal --> Utilisateur: void
+deactivate TaskPrincipal
+
+Utilisateur -> TaskPrincipal: ajouterSousTache(TaskSousTache2)
+activate TaskPrincipal
+TaskPrincipal -> TaskPrincipal: sousTaches.add(TaskSousTache2)
+TaskPrincipal --> Utilisateur: void
+deactivate TaskPrincipal
+
+Utilisateur -> TaskPrincipal: getSousTaches()
+activate TaskPrincipal
+TaskPrincipal --> Utilisateur: [TaskSousTache1, TaskSousTache2]
+deactivate TaskPrincipal
+
+@enduml

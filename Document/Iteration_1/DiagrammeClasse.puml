@@ -1,4 +1,5 @@
-@startuml Diagramme de Classes - Itération 1 COMPLET
+@startuml
+Title Diagramme de Classes - Itération 1 COMPLET
 
 package "Model" {
 

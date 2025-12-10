@@ -1,0 +1,39 @@
+@startuml
+Title Iteration 1 - Créer Tâche
+
+participant Utilisateur
+participant TaskFactory
+participant Task
+participant ListeTaches
+
+Utilisateur -> TaskFactory: creerTask("Conception", HAUTE)
+activate TaskFactory
+
+TaskFactory -> Task: new Task(UUID, "Conception", HAUTE, debut, fin)
+activate Task
+Task -> Task: this.id = UUID
+Task -> Task: this.titre = "Conception"
+Task -> Task: this.priorite = HAUTE
+Task -> Task: this.statut = A_FAIRE
+Task -> Task: this.sousTaches = [ ]
+Task ->ListeTaches
+Task --> TaskFactory: void
+deactivate Task
+
+TaskFactory --> Utilisateur: Task créée
+deactivate TaskFactory
+
+Utilisateur -> Task: changerStatut(EN_COURS)
+activate Task
+Task -> Task: this.statut = EN_COURS
+Task --> Utilisateur: void
+deactivate Task
+
+Utilisateur -> Task: ajouterSousTache(sousTacheA)
+activate Task
+Task -> Task: sousTaches.add(sousTacheA)
+Task -> ListeTaches
+Task --> Utilisateur: void
+deactivate Task
+
+@enduml
