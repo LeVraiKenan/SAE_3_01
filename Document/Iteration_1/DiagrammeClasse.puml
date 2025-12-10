@@ -29,7 +29,9 @@ package "Model" {
         + sousTaches: List<Task>
         --
         - creer(): Task
-        - editer(): void
+        - setTitre(String): void
+        - setDescription(String): void
+        - setPriorite(Priorite):void
         - changerStatut(Statut): void
         - ajouterSousTache(Task): void
         - getSousTaches(): List<Task>
