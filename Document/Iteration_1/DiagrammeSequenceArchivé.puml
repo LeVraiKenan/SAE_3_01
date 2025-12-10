@@ -1,0 +1,37 @@
+@startuml
+Title Iteration 1 - Archiver Tâche
+
+participant Utilisateur
+participant ArchiveService
+participant Task
+
+Utilisateur -> Task: creerTask("Tâche")
+activate Task
+Task --> Utilisateur : Task
+deactivate Task
+
+Utilisateur -> Task: changerStatut(TERMINEE)
+
+activate Task
+Task -> Task: this.statut = TERMINEE
+Task --> Utilisateur : void
+deactivate Task
+
+Utilisateur -> ArchiveService: archiver(tache)
+activate ArchiveService
+ArchiveService -> Task: changerStatut(ARCHIVEE)
+
+activate Task
+Task -> Task: this.statut = ARCHIVEE
+Task --> ArchiveService
+deactivate Task
+
+ArchiveService -> ArchiveService: archivees.add(tache)
+note right of ArchiveService
+    Ajoute la tâche dans la liste "archivees"
+end note
+
+ArchiveService --> Utilisateur : void
+deactivate ArchiveService
+
+@enduml
