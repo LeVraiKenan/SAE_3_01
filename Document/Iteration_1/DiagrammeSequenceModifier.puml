@@ -1,0 +1,47 @@
+@startuml
+Title Iteration 1 - Éditer Tâche
+
+participant Utilisateur
+participant TaskFactory
+participant Task
+
+' --- Phase de Création ---
+Utilisateur -> TaskFactory: creerTask("Conception", HAUTE, debut, fin)
+activate TaskFactory
+
+TaskFactory -> Task: new Task(...)
+activate Task
+Task --> TaskFactory : instance
+deactivate Task
+
+TaskFactory --> Utilisateur: Task créée
+deactivate TaskFactory
+
+' --- Phase d'Édition ---
+note right of Utilisateur
+  L'utilisateur modifie les propriétés
+  de la tâche existante
+end note
+
+' Modification du Titre
+Utilisateur -> Task: setTitre(nouveauTitre)
+activate Task
+Task -> Task: this.titre = nouveauTitre
+Task --> Utilisateur : void
+deactivate Task
+
+' Modification de la Description
+Utilisateur -> Task: setDescription(nouvelleDescription)
+activate Task
+Task -> Task: this.description = nouvelleDescription
+Task --> Utilisateur : void
+deactivate Task
+
+' Modification de la Priorité
+Utilisateur -> Task: setPriorite(nouvellePriorite)
+activate Task
+Task -> Task: this.priorite = nouvellePriorite
+Task --> Utilisateur : void
+deactivate Task
+
+@enduml
