@@ -71,7 +71,7 @@ package "controleur" {
         --
         - archiver(Task): void
         - restaurer(Task): void
-        - obtenirArchives(): List<Task>
+        - getArchives(): List<Task>
         - supprimerDefinitif(Task): void
     }
 
