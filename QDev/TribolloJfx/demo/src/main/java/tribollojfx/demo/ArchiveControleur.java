@@ -16,8 +16,4 @@ public class ArchiveControleur {
     public List<Task> getArchives() {
         return archivees;
     }
-
-    public void supprimerDefinitif(Task t){
-        //TODO : cf persistance
-    }
 }

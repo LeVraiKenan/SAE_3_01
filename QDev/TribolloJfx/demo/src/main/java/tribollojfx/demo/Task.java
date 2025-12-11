@@ -1,8 +1,6 @@
 package tribollojfx.demo;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class Task {
@@ -13,7 +11,8 @@ public class Task {
     private Priorite priorite;
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
-    private List<Task> sousTaches;
+
+    public Task() {}
 
     public Task(String titre, String description, Priorite priorite, LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.id = UUID.randomUUID();
@@ -23,31 +22,30 @@ public class Task {
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
         this.statut = Statut.A_FAIRE;
-        this.sousTaches = new ArrayList<Task>();
     }
 
-    public void setTitre(String titre) {
-        this.titre = titre;
+    public UUID getId() { return id; }
+    public String getTitre() { return titre; }
+    public String getDescription() { return description; }
+    public Statut getStatut() { return statut; }
+    public Priorite getPriorite() { return priorite; }
+    public LocalDateTime getDateDebut() { return dateDebut; }
+    public LocalDateTime getDateFin() { return dateFin; }
+
+    public void setTitre(String titre) { this.titre = titre; }
+    public void setDescription(String description) { this.description = description; }
+    public void setPriorite(Priorite priorite) { this.priorite = priorite; }
+    public void setDateDebut(LocalDateTime dateDebut) { this.dateDebut = dateDebut; }
+    public void setDateFin(LocalDateTime dateFin) { this.dateFin = dateFin; }
+
+    public void changerStatut(Statut statut) { this.statut = statut; }
+
+    public boolean estArchivee() {
+        return this.statut == Statut.ARCHIVEE;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    @Override
+    public String toString() {
+        return titre + " (" + priorite + ") [" + statut + "]";
     }
-
-    public void setPriorite(Priorite priorite) {
-        this.priorite = priorite;
-    }
-
-    public void changerStatut(Statut statut) {
-        this.statut = statut;
-    }
-
-    public void ajouterSousTache(Task task) {
-        this.sousTaches.add(task);
-    }
-
-    public List<Task> getSousTaches() {
-        return this.sousTaches;
-    }
-
 }
