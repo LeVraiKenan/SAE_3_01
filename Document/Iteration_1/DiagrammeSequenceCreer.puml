@@ -4,7 +4,6 @@ Title Iteration 1 - Créer Tâche
 participant Utilisateur
 participant TaskFactory
 participant Task
-participant ListeTaches
 
 Utilisateur -> TaskFactory: creerTask("Conception", HAUTE)
 activate TaskFactory
@@ -15,8 +14,7 @@ Task -> Task: this.id = UUID
 Task -> Task: this.titre = "Conception"
 Task -> Task: this.priorite = HAUTE
 Task -> Task: this.statut = A_FAIRE
-Task -> Task: this.sousTaches = [ ]
-Task ->ListeTaches
+Task -> Task: this.sousTaches = ArrayList<Task()>
 Task --> TaskFactory: void
 deactivate Task
 
@@ -32,7 +30,6 @@ deactivate Task
 Utilisateur -> Task: ajouterSousTache(sousTacheA)
 activate Task
 Task -> Task: sousTaches.add(sousTacheA)
-Task -> ListeTaches
 Task --> Utilisateur: void
 deactivate Task
 
