@@ -1,6 +1,7 @@
 package tribollojfx.demo;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class Task {
@@ -11,8 +12,7 @@ public class Task {
     private Priorite priorite;
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
-
-    public Task() {}
+    private ArrayList<Task> sousTaches = new ArrayList<Task>();
 
     public Task(String titre, String description, Priorite priorite, LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.id = UUID.randomUUID();
@@ -24,6 +24,15 @@ public class Task {
         this.statut = Statut.A_FAIRE;
     }
 
+    public Task(String titre) {
+        this.id = UUID.randomUUID();
+        this.titre = titre;
+    }
+
+    public void addSousTask(Task task) {
+        this.sousTaches.add(task);
+    }
+
     public UUID getId() { return id; }
     public String getTitre() { return titre; }
     public String getDescription() { return description; }
@@ -31,6 +40,7 @@ public class Task {
     public Priorite getPriorite() { return priorite; }
     public LocalDateTime getDateDebut() { return dateDebut; }
     public LocalDateTime getDateFin() { return dateFin; }
+    public ArrayList<Task> getSousTaches() { return sousTaches; }
 
     public void setTitre(String titre) { this.titre = titre; }
     public void setDescription(String description) { this.description = description; }

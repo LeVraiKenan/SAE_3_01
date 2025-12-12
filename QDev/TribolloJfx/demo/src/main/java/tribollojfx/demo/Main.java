@@ -51,6 +51,7 @@ public class Main extends Application implements TaskModelObservateur {
             DatePicker debut = new DatePicker();
             DatePicker fin = new DatePicker();
             ComboBox<Priorite> priorite = new ComboBox<>();
+
             priorite.getItems().setAll(Priorite.values());
 
             GridPane grid = new GridPane();
@@ -98,10 +99,46 @@ public class Main extends Application implements TaskModelObservateur {
         Button supprimer = new Button("Supprimer");
         supprimer.setOnAction(e -> model.supprimerTask(t));
 
-        HBox box = new HBox(10, titre, archive, supprimer);
+        Button ajouterSousTache = new Button("+ Sous-tâche");
+        ajouterSousTache.setOnAction(e -> {
+            Dialog<Task> dialog = new Dialog<>();
+            dialog.setTitle("Créer une sous-tâche");
+
+            TextField stitre = new TextField();
+            TextArea desc = new TextArea();
+
+            GridPane grid = new GridPane();
+            grid.setVgap(10);
+            grid.setHgap(10);
+            grid.setPadding(new Insets(10));
+            grid.addRow(0, new Label("Titre:"), stitre);
+            grid.addRow(1, new Label("Description:"), desc);
+
+            dialog.getDialogPane().setContent(grid);
+            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+            dialog.setResultConverter(btnType -> {
+                if (btnType == ButtonType.OK) {
+                    Task st = new Task(stitre.getText(), desc.getText(), Priorite.NORMALE,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+                    t.addSousTask(st);
+                    return st;
+                }
+                return null;
+            });
+
+            dialog.showAndWait().ifPresent(st -> model.notifier());
+        });
+        HBox box = new HBox(10, titre, archive, ajouterSousTache, supprimer);
         box.setPadding(new Insets(5));
         box.setStyle("-fx-border-color: gray; -fx-background-color: #f0f0f0;");
-        return box;
+        VBox sousTachesBox = new VBox(5);
+        for (Task st : t.getSousTaches()) {
+            Label lbl = new Label("↳ " + st.getTitre());
+            sousTachesBox.getChildren().add(lbl);
+        }
+        VBox carte = new VBox(box, sousTachesBox);
+        return new HBox(carte);
     }
 
     @Override
