@@ -10,7 +10,6 @@ class TestTaskFactory {
 
     @Test
     void testCreerTaskAvecDatesAutomatiques() {
-        // utilise la méthode creerTask(String) puis règle la priorité
         Task t = TaskFactory.creerTask("Auto");
         t.setPriorite(Priorite.NORMALE);
 
