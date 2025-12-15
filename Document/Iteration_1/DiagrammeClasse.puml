@@ -2,7 +2,6 @@
 Title Diagramme de Classes - Itération 1 COMPLET
 
 package "Model" {
-
     enum Statut {
         A_FAIRE
         EN_COURS
@@ -19,63 +18,76 @@ package "Model" {
     }
 
     class Task {
-        + id: UUID
-        + titre: String
-        + description: String
-        + statut: Statut
-        + priorite: Priorite
-        + dateDebut: LocalDateTime
-        + dateFin: LocalDateTime
-        + sousTaches: List<Task>
-        --
-        - creer(): Task
-        - setTitre(String): void
-        - setDescription(String): void
-        - setPriorite(Priorite):void
-        - changerStatut(Statut): void
-        - ajouterSousTache(Task): void
-        - getSousTaches(): List<Task>
-        - estArchivee(): boolean
+        - id: UUID
+        - titre: String
+        - description: String
+        - statut: Statut
+        - priorite: Priorite
+        - dateDebut: LocalDateTime
+        - dateFin: LocalDateTime
+        + Task(String, String, Priorite, LocalDateTime, LocalDateTime)
+        + setTitre(String): void
+        + setDescription(String): void
+        + setPriorite(Priorite): void
+        + changerStatut(Statut): void
+        + estArchivee(): boolean
+        + toString(): String
     }
 
     class TaskFactory {
-        --
-        - creerTask(String, Priorite): Task
-        - creerTask(String, Priorite, LocalDateTime, LocalDateTime): Task
+        + creerTask(String, Priorite): Task
+        + creerTask(String, Priorite, LocalDateTime, LocalDateTime): Task
     }
 
-    Task "1" --o "*" Task : contient
     Task --> Statut
     Task --> Priorite
-    TaskFactory --> Task : crée
+    TaskFactory --> Task : «create»
 }
 
-package "View" {
-
-    class ListView {
-        + taches: List<Task>
-        --
-        - afficherHierarchie(List<Task>): void
-        - deplierTache(Task): void
-        - replierTache(Task): void
-        - mettreAJourAffichage(): void
+package "Controleur" {
+    class ArchiveControleur {
+        - archives: List<Task>
+        + archiver(Task): void
+        + restaurer(Task): void
+        + getArchives(): List<Task>
     }
 
-    ListView --> Task : affiche
-}
+    class TaskModel {
+        - taches: List<Task>
+        - observers: List<TaskModelObservateur>
+        - repository: TxtTaskRepository
+        + getTaches(): List<Task>
+        + ajouterTask(Task): void
+        + supprimerTask(Task): void
+        + addObserver(TaskModelObservateur): void
+        + notifier(): void
+    }
 
-package "controleur" {
+    interface TaskModelObservateur {
+        + onTasksChanged(List<Task>): void
+    }
 
-    class ArchiveControleur {
-        + archivees: List<Task>
-        --
-        - archiver(Task): void
-        - restaurer(Task): void
-        - getArchives(): List<Task>
-        - supprimerDefinitif(Task): void
+    class TxtTaskRepository {
+        + saveAll(List<Task>): void
+        + loadAll(): List<Task>
     }
 
     ArchiveControleur --> Task : gère
+    TaskModel --> Task : contient
+    TaskModel --> TaskModelObservateur : notifie
+    TaskModel --> TxtTaskRepository : utilise
 }
 
+package "View" {
+    class Main {
+        + start(Stage): void
+        + onTasksChanged(List<Task>): void
+        - creerBoutonAjout(Statut): Button
+        - creerCarte(Task): HBox
+    }
+
+    Main --> TaskModel : «create»
+    Main --> Task : affiche
+    Main -^ TaskModelObservateur
+}
 @enduml
