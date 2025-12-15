@@ -2,6 +2,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tribollojfx.demo.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.time.LocalDateTime;
 
 class TestArchiveControleur {
 
@@ -12,8 +13,12 @@ class TestArchiveControleur {
     @BeforeEach
     void setUp() {
         archiveControleur = new ArchiveControleur();
-        t1 = TaskFactory.creerTask("Tâche 1", Priorite.NORMALE);
-        t2 = TaskFactory.creerTask("Tâche 2", Priorite.HAUTE);
+
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+
+        t1 = TaskFactory.creerTask("Tâche 1", Priorite.NORMALE, debut, fin);
+        t2 = TaskFactory.creerTask("Tâche 2", Priorite.HAUTE, debut, fin);
     }
 
     @Test

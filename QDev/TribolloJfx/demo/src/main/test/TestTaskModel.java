@@ -1,10 +1,12 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.util.List;
+import tribollojfx.demo.*;
+
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.jupiter.api.Assertions.*;
-import tribollojfx.demo.*;
 
 class TestTaskModel {
 
@@ -12,8 +14,8 @@ class TestTaskModel {
 
     @BeforeEach
     void setUp() {
-        model = new TaskModel(); // chargera éventuellement des tâches depuis le fichier
-        model.getTaches().clear(); // on part d’une liste vide pour un test déterministe
+        model = new TaskModel();          // charge depuis le fichier si besoin
+        model.getTaches().clear();       // on part d'une liste vide
     }
 
     @Test
@@ -21,7 +23,10 @@ class TestTaskModel {
         AtomicBoolean notifie = new AtomicBoolean(false);
         model.addObserver(tasks -> notifie.set(true));
 
-        Task t = TaskFactory.creerTask("T1", Priorite.NORMALE);
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+        Task t = new Task("T1", "Desc", Priorite.NORMALE, debut, fin);
+
         model.ajouterTask(t);
 
         assertTrue(model.getTaches().contains(t));
@@ -31,8 +36,12 @@ class TestTaskModel {
 
     @Test
     void testSupprimerTaskModifieLaListeEtNotifie() {
-        Task t1 = TaskFactory.creerTask("T1", Priorite.NORMALE);
-        Task t2 = TaskFactory.creerTask("T2", Priorite.BASSE);
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+
+        Task t1 = new Task("T1", "Desc1", Priorite.NORMALE, debut, fin);
+        Task t2 = new Task("T2", "Desc2", Priorite.BASSE, debut, fin);
+
         model.ajouterTask(t1);
         model.ajouterTask(t2);
 
@@ -53,6 +62,7 @@ class TestTaskModel {
         model.addObserver(tasks -> notifications.incrementAndGet());
 
         model.notifier();
+
         assertEquals(1, notifications.get());
     }
 }

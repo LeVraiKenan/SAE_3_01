@@ -1,14 +1,18 @@
 import org.junit.jupiter.api.Test;
+import tribollojfx.demo.*;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
-import tribollojfx.demo.*;
 
 class TestTaskFactory {
 
     @Test
     void testCreerTaskAvecDatesAutomatiques() {
-        Task t = TaskFactory.creerTask("Auto", Priorite.NORMALE);
+        // utilise la méthode creerTask(String) puis règle la priorité
+        Task t = TaskFactory.creerTask("Auto");
+        t.setPriorite(Priorite.NORMALE);
 
         assertEquals("Auto", t.getTitre());
         assertEquals(Priorite.NORMALE, t.getPriorite());

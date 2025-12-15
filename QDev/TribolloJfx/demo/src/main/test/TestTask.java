@@ -1,7 +1,9 @@
 import org.junit.jupiter.api.Test;
-import java.time.LocalDateTime;
-import static org.junit.jupiter.api.Assertions.*;
 import tribollojfx.demo.*;
+
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class TestTask {
 
@@ -22,7 +24,9 @@ class TestTask {
 
     @Test
     void testSetters() {
-        Task t = new Task("T1", "D1", Priorite.BASSE, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+        Task t = new Task("T1", "D1", Priorite.BASSE, debut, fin);
 
         t.setTitre("Nouveau titre");
         t.setDescription("Nouvelle desc");
@@ -35,7 +39,9 @@ class TestTask {
 
     @Test
     void testChangerStatutEtEstArchivee() {
-        Task t = TaskFactory.creerTask("Test", Priorite.NORMALE);
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+        Task t = new Task("Test", "Desc", Priorite.NORMALE, debut, fin);
 
         assertEquals(Statut.A_FAIRE, t.getStatut());
         assertFalse(t.estArchivee());
@@ -48,9 +54,27 @@ class TestTask {
 
     @Test
     void testToStringNonVide() {
-        Task t = TaskFactory.creerTask("Test", Priorite.NORMALE);
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+        Task t = new Task("Test", "Desc", Priorite.NORMALE, debut, fin);
+
         String s = t.toString();
         assertNotNull(s);
         assertTrue(s.contains("Test"));
+    }
+
+    @Test
+    void testSousTaches() {
+        LocalDateTime debut = LocalDateTime.now();
+        LocalDateTime fin = debut.plusDays(1);
+        Task parent = new Task("Parent", "Desc", Priorite.NORMALE, debut, fin);
+        Task child = new Task("Enfant");
+
+        assertTrue(parent.getSousTaches().isEmpty());
+
+        parent.addSousTask(child);
+
+        assertEquals(1, parent.getSousTaches().size());
+        assertSame(child, parent.getSousTaches().get(0));
     }
 }
