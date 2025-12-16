@@ -14,8 +14,8 @@ class TestTaskModel {
 
     @BeforeEach
     void setUp() {
-        model = new TaskModel();
-        model.getTaches().clear();
+        model = new TaskModel();          // charge depuis le fichier si besoin
+        model.getTaches().clear();       // on part d'une liste vide
     }
 
     @Test
