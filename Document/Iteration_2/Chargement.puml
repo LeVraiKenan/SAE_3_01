@@ -1,0 +1,24 @@
+@startuml Diagramme_Chargement
+title Chargement - Personne 1
+
+participant "Main" as Main
+participant "TaskModel" as Model
+participant "SerializedTaskRepository" as Repository
+
+Main -> Model : new TaskModel()
+activate Model
+
+Model -> Repository : new SerializedTaskRepository()
+Model -> Model : loadTasks()
+Model -> Repository : loadAll()
+activate Repository
+
+Repository -> Repository : ObjectInputStream.readObject()
+Repository --> Model : List<Task>
+deactivate Repository
+loop pour chaque task
+    Model -> Model : tasks.put(task)
+end
+Model --> Main : Tâches chargées
+deactivate Model
+@enduml
