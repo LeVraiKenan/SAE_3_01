@@ -15,13 +15,14 @@ class TestTaskModel {
     @BeforeEach
     void setUp() {
         model = new TaskModel();
-        model.getTaches().clear();
     }
 
     @Test
     void testAjouterTaskModifieLaListeEtNotifie() {
         AtomicBoolean notifie = new AtomicBoolean(false);
         model.addObserver(tasks -> notifie.set(true));
+
+        int tailleInitiale = model.getTaches().size();
 
         LocalDateTime debut = LocalDateTime.now();
         LocalDateTime fin = debut.plusDays(1);
@@ -30,7 +31,7 @@ class TestTaskModel {
         model.ajouterTask(t);
 
         assertTrue(model.getTaches().contains(t));
-        assertEquals(1, model.getTaches().size());
+        assertEquals(tailleInitiale + 1, model.getTaches().size());
         assertTrue(notifie.get());
     }
 
@@ -45,6 +46,8 @@ class TestTaskModel {
         model.ajouterTask(t1);
         model.ajouterTask(t2);
 
+        int tailleApresAjout = model.getTaches().size();
+
         AtomicInteger notifications = new AtomicInteger(0);
         model.addObserver(tasks -> notifications.incrementAndGet());
 
@@ -52,7 +55,7 @@ class TestTaskModel {
 
         assertFalse(model.getTaches().contains(t1));
         assertTrue(model.getTaches().contains(t2));
-        assertEquals(1, model.getTaches().size());
+        assertEquals(tailleApresAjout - 1, model.getTaches().size());
         assertTrue(notifications.get() >= 1);
     }
 
