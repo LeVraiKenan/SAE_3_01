@@ -1,0 +1,35 @@
+@startuml
+
+title Création d'une tâche
+
+activate Utilisateur
+
+Utilisateur -> Main: clic sur "Ajouter"
+
+activate Main
+
+Main -> Main: ouvrirDialogueAjout(statut)
+Main --> Utilisateur: affiche la boîte de dialogue
+Utilisateur -> Main: valide la création (OK)
+
+Main -> TaskModel: ajouterTask(tâche)
+
+activate TaskModel
+
+TaskModel -> SerializedTaskRepository: saveAll(liste des tâches)
+
+activate SerializedTaskRepository
+
+SerializedTaskRepository --> TaskModel: valider
+
+deactivate SerializedTaskRepository
+
+TaskModel --> Main: notifier(liste des tâches)
+
+Utilisateur -> Main : double clique sur une tâche
+Main --> Utilisateur : ouvrirDialogueEdition(tâche)
+
+deactivate Main
+deactivate TaskModel
+
+@enduml
