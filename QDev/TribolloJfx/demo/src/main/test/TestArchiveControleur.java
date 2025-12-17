@@ -1,42 +1,55 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tribollojfx.demo.*;
-import static org.junit.jupiter.api.Assertions.*;
+
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class TestArchiveControleur {
 
+    private TaskModel model;
     private ArchiveControleur archiveControleur;
     private Task t1;
     private Task t2;
 
     @BeforeEach
     void setUp() {
-        archiveControleur = new ArchiveControleur();
+        model = new TaskModel();
+        archiveControleur = new ArchiveControleur(model);
 
         LocalDateTime debut = LocalDateTime.now();
         LocalDateTime fin = debut.plusDays(1);
 
-        t1 = TaskFactory.creerTask("Tâche 1", Priorite.NORMALE, debut, fin);
-        t2 = TaskFactory.creerTask("Tâche 2", Priorite.HAUTE, debut, fin);
+        t1 = new Task("Tâche 1", "Desc 1", Priorite.NORMALE, debut, fin);
+        t2 = new Task("Tâche 2", "Desc 2", Priorite.HAUTE, debut, fin);
+
+        model.ajouterTask(t1);
+        model.ajouterTask(t2);
     }
 
     @Test
-    void testArchiverAjouteLaTache() {
+    void testArchiverMetLaTacheEnArchiveeEtLaRendVisibleDansLesArchives() {
         archiveControleur.archiver(t1);
-        assertTrue(archiveControleur.getArchives().contains(t1));
-        assertEquals(1, archiveControleur.getArchives().size());
+
+        assertEquals(Statut.ARCHIVEE, t1.getStatut());
+
+        List<Task> archives = archiveControleur.getArchives();
+        assertTrue(archives.contains(t1));
     }
 
     @Test
-    void testRestaurerRetireLaTache() {
+    void testRestaurerMetLaTacheEnAFaireEtLaRetireDesArchives() {
         archiveControleur.archiver(t1);
         archiveControleur.archiver(t2);
 
         archiveControleur.restaurer(t1);
 
-        assertFalse(archiveControleur.getArchives().contains(t1));
-        assertTrue(archiveControleur.getArchives().contains(t2));
-        assertEquals(1, archiveControleur.getArchives().size());
+        assertEquals(Statut.A_FAIRE, t1.getStatut());
+
+        List<Task> archives = archiveControleur.getArchives();
+        assertFalse(archives.contains(t1));
+        assertTrue(archives.contains(t2));
     }
 }
