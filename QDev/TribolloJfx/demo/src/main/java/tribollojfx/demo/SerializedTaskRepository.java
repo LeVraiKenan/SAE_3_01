@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SerializedTaskRepository {
-    private static final String FILE_NAME = "tasks.dat";
+    private static final String FILE_NAME = "tasks";
 
     public void saveAll(List<Task> tasks) {
         try (ObjectOutputStream oos = new ObjectOutputStream(

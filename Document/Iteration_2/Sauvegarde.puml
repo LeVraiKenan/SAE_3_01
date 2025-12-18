@@ -1,0 +1,25 @@
+@startuml Diagramme_Sauvegarde
+title Sauvegarde - Personne 1
+
+actor Utilisateur
+participant "Main" as Main
+participant "TaskModel" as Model
+participant "SerializedTaskRepository" as Repository
+
+Utilisateur -> Main : Modifie une tâche
+Main -> Model : updateTaskStatut(taskId, statut)
+activate Model
+
+Model -> Model : notifier()
+Model -> Model : saveTasks
+Model -> Repository : saveAll(tasks)
+activate Repository
+Repository -> Repository : ObjectOutputStream.writeObject(tasks)
+Repository --> Model :
+deactivate Repository
+
+Model --> Main :
+deactivate Model
+
+Main --> Utilisateur : Interface mise à jour
+@enduml
