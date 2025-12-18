@@ -1,0 +1,54 @@
+@startuml
+title Iteration 2 - Modification du statut d'une sous-tâche avec recalcul du parent
+hide footbox
+
+participant "Main" as M
+participant "TaskModel" as Model
+participant "Task (Parent)" as Parent
+participant "Task (Enfant)" as Child
+
+M -> Model : updateSousTaskStatut(enfantId, TERMINEE)
+activate Model
+    Model -> Model : getTaskById(enfantId)
+    activate Model
+        Model <-- Model : enfant
+    deactivate Model
+
+    alt enfant != null
+        Model -> Child : changerStatut(TERMINEE)
+        activate Child
+            Child --> Model
+        deactivate Child
+
+        note right of Model : Récupération du Parent id
+
+        Model -> Child : getParentId()
+        activate Child
+            return parentId
+        deactivate Child
+
+        opt parentId != null
+            note right of Model: Récupère le Parent
+            Model -> Model : getTaskById(parentId)
+            activate Model
+                Model <-- Model : parent
+            deactivate Model
+
+            alt parent != null
+                note right of Model: Recalcul le statut du parent selon toutes ses \nsous-tâches \n(cf. diagramme sequence updateParentStatus)
+
+                '' Méthode Privée
+                Model -> Model : updateParentStatus(parent)
+                activate Model #LightBlue
+                Model <-- Model : void
+                deactivate Model
+            end
+        end
+
+    Model -> Model : notifier()
+    Model -> Model : saveTasks()
+    end
+    Model --> M : void
+deactivate Model
+
+@enduml
