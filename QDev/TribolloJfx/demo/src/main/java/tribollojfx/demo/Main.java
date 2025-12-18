@@ -18,6 +18,7 @@ import java.util.*;
 public class Main extends Application implements TaskModelObservateur {
     private TaskModel model;
     private Map<Statut, VBox> colonnes;
+    private Task draggedTask;
 
     @Override
     public void start(Stage stage) {
@@ -66,8 +67,6 @@ public class Main extends Application implements TaskModelObservateur {
         return colonne;
     }
 
-
-
     private void configurerDragDrop(VBox contenu, Statut statutCible) {
         contenu.setOnDragOver(event -> {
             if (event.getGestureSource() != contenu && event.getDragboard().hasString()) {
@@ -80,14 +79,10 @@ public class Main extends Application implements TaskModelObservateur {
             Dragboard db = event.getDragboard();
             boolean success = false;
 
-            if (db.hasString()) {
-                try {
-                    UUID taskId = UUID.fromString(db.getString());
-                    model.updateTaskStatut(taskId, statutCible);
-                    success = true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            if (db.hasString() && draggedTask != null) {
+                model.updateTaskStatut(draggedTask, statutCible);
+                success = true;
+                draggedTask = null;
             }
 
             event.setDropCompleted(success);
@@ -132,13 +127,13 @@ public class Main extends Application implements TaskModelObservateur {
 
         HBox actions = new HBox(5);
 
-        Button btnArchive = new Button(t.getStatut() == Statut.ARCHIVEE ? "A" : "R");
+        Button btnArchive = new Button(t.getStatut() == Statut.ARCHIVEE ? "R" : "A");
         btnArchive.setTooltip(new Tooltip(t.getStatut() == Statut.ARCHIVEE ? "Restaurer" : "Archiver"));
         btnArchive.setOnAction(e -> {
             if (t.getStatut() == Statut.ARCHIVEE) {
-                model.updateTaskStatut(t.getId(), Statut.A_FAIRE);
+                model.updateTaskStatut(t, Statut.A_FAIRE);
             } else {
-                model.updateTaskStatut(t.getId(), Statut.ARCHIVEE);
+                model.updateTaskStatut(t, Statut.ARCHIVEE);
             }
         });
 
@@ -164,10 +159,11 @@ public class Main extends Application implements TaskModelObservateur {
         carte.getChildren().addAll(prioriteIndicator, infos, actions);
 
         carte.setOnDragDetected(event -> {
-            if (t.getParentId() == null && t.getStatut() != Statut.ARCHIVEE) {
+            if (t.getStatut() != Statut.ARCHIVEE) {
+                draggedTask = t;
                 Dragboard db = carte.startDragAndDrop(TransferMode.MOVE);
                 ClipboardContent content = new ClipboardContent();
-                content.putString(t.getId().toString());
+                content.putString("task");
                 db.setContent(content);
                 event.consume();
             }
@@ -192,7 +188,7 @@ public class Main extends Application implements TaskModelObservateur {
             if (!titre.trim().isEmpty()) {
                 Task sousTask = new Task(titre.trim());
                 sousTask.setPriorite(parent.getPriorite());
-                model.ajouterSousTask(parent.getId(), sousTask);
+                model.ajouterSousTask(parent, sousTask);
             }
         });
     }
@@ -227,7 +223,7 @@ public class Main extends Application implements TaskModelObservateur {
                 check.setSelected(st.getStatut() == Statut.TERMINEE);
                 check.setOnAction(e -> {
                     Statut nouveauStatut = check.isSelected() ? Statut.TERMINEE : Statut.A_FAIRE;
-                    model.updateSousTaskStatut(st.getId(), nouveauStatut);
+                    model.updateSousTaskStatut(st, nouveauStatut);
                 });
 
                 Label titreLabel = new Label(st.getTitre());
@@ -369,55 +365,6 @@ public class Main extends Application implements TaskModelObservateur {
         dialog.showAndWait().ifPresent(model::ajouterTask);
     }
 
-        private Button creerBoutonAjout(Statut statut) {
-        Button btn = new Button("+ Ajouter");
-        btn.setOnAction(e -> {
-            Dialog<Task> dialog = new Dialog<>();
-            dialog.setTitle("Créer une tâche");
-
-            TextField titre = new TextField();
-            TextArea desc = new TextArea();
-            DatePicker debut = new DatePicker();
-            DatePicker fin = new DatePicker();
-            ComboBox<Priorite> priorite = new ComboBox<>();
-
-            priorite.getItems().setAll(Priorite.values());
-
-            GridPane grid = new GridPane();
-            grid.setVgap(10);
-            grid.setHgap(10);
-            grid.setPadding(new Insets(10));
-            grid.addRow(0, new Label("Titre:"), titre);
-            grid.addRow(1, new Label("Description:"), desc);
-            grid.addRow(2, new Label("Début:"), debut);
-            grid.addRow(3, new Label("Fin:"), fin);
-            grid.addRow(4, new Label("Priorité:"), priorite);
-
-            dialog.getDialogPane().setContent(grid);
-            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-            dialog.setResultConverter(btnType -> {
-                if (btnType == ButtonType.OK) {
-                    Task t = new Task(
-                            titre.getText(),
-                            desc.getText(),
-                            priorite.getValue(),
-                            debut.getValue().atStartOfDay(),
-                            fin.getValue().atStartOfDay()
-                    );
-                    t.changerStatut(statut);
-                    return t;
-                }
-                return null;
-            });
-
-            dialog.showAndWait().ifPresent(model::ajouterTask);
-        });
-        return btn;
-    }
-
-
-
     @Override
     public void notifier(List<Task> tasks) {
         for (VBox colonne : colonnes.values()) {
@@ -431,63 +378,62 @@ public class Main extends Application implements TaskModelObservateur {
         }
 
         for (Task t : tasks) {
-            if (t.getParentId() == null) {
-                VBox colonne = colonnes.get(t.getStatut());
-                if (colonne != null) {
-                    VBox contenu = (VBox) colonne.getChildren().get(1);
-                    HBox carte = creerCarte(t);
-                    contenu.getChildren().add(carte);
+            VBox colonne = colonnes.get(t.getStatut());
+            if (colonne != null) {
+                VBox contenu = (VBox) colonne.getChildren().get(1);
+                HBox carte = creerCarte(t);
+                contenu.getChildren().add(carte);
 
-                    compteurs.put(t.getStatut(), compteurs.get(t.getStatut()) + 1);
+                compteurs.put(t.getStatut(), compteurs.get(t.getStatut()) + 1);
 
-                    if (!t.getSousTaches().isEmpty()) {
-                        VBox sousTachesBox = new VBox(2);
-                        sousTachesBox.setPadding(new Insets(5, 0, 0, 20));
+                if (!t.getSousTaches().isEmpty()) {
+                    VBox sousTachesBox = new VBox(2);
+                    sousTachesBox.setPadding(new Insets(5, 0, 0, 20));
 
-                        List<Task> sousTachesTriees = new ArrayList<>(t.getSousTaches());
-                        sousTachesTriees.sort((st1, st2) -> {
-                            if (st1.getStatut() == Statut.EN_COURS && st2.getStatut() != Statut.EN_COURS) return -1;
-                            if (st1.getStatut() != Statut.EN_COURS && st2.getStatut() == Statut.EN_COURS) return 1;
-                            if (st1.getStatut() == Statut.A_FAIRE && st2.getStatut() == Statut.TERMINEE) return -1;
-                            if (st1.getStatut() == Statut.TERMINEE && st2.getStatut() == Statut.A_FAIRE) return 1;
-                            return st1.getTitre().compareTo(st2.getTitre());
+                    List<Task> sousTachesTriees = new ArrayList<>(t.getSousTaches());
+                    sousTachesTriees.sort((st1, st2) -> {
+                        if (st1.getStatut() == Statut.EN_COURS && st2.getStatut() != Statut.EN_COURS) return -1;
+                        if (st1.getStatut() != Statut.EN_COURS && st2.getStatut() == Statut.EN_COURS) return 1;
+                        if (st1.getStatut() == Statut.A_FAIRE && st2.getStatut() == Statut.TERMINEE) return -1;
+                        if (st1.getStatut() == Statut.TERMINEE && st2.getStatut() == Statut.A_FAIRE) return 1;
+                        return st1.getTitre().compareTo(st2.getTitre());
+                    });
+
+                    for (Task st : sousTachesTriees) {
+                        HBox stBox = new HBox(5);
+                        stBox.setAlignment(Pos.CENTER_LEFT);
+                        stBox.setPadding(new Insets(2));
+
+                        Circle statutDot = new Circle(3);
+                        switch (st.getStatut()) {
+                            case A_FAIRE:
+                                statutDot.setFill(Color.LIGHTGRAY);
+                                break;
+                            case EN_COURS:
+                                statutDot.setFill(Color.BLUE);
+                                break;
+                            case TERMINEE:
+                                statutDot.setFill(Color.GREEN);
+                                break;
+                        }
+
+                        Label stLabel = new Label(st.getTitre());
+
+                        CheckBox check = new CheckBox();
+                        check.setSelected(st.getStatut() == Statut.TERMINEE);
+                        check.setOnAction(e -> {
+                            Statut nouveauStatut = check.isSelected() ? Statut.TERMINEE : Statut.A_FAIRE;
+                            model.updateSousTaskStatut(st, nouveauStatut);
                         });
 
-                        for (Task st : sousTachesTriees) {
-                            HBox stBox = new HBox(5);
-                            stBox.setAlignment(Pos.CENTER_LEFT);
-                            stBox.setPadding(new Insets(2));
-
-                            Circle statutDot = new Circle(3);
-                            switch (st.getStatut()) {
-                                case A_FAIRE:
-                                    statutDot.setFill(Color.LIGHTGRAY);
-                                    break;
-                                case EN_COURS:
-                                    statutDot.setFill(Color.BLUE);
-                                    break;
-                                case TERMINEE:
-                                    statutDot.setFill(Color.GREEN);
-                                    break;
-                            }
-
-                            Label stLabel = new Label(st.getTitre());
-
-                            CheckBox check = new CheckBox();
-                            check.setSelected(st.getStatut() == Statut.TERMINEE);
-                            check.setOnAction(e -> {
-                                Statut nouveauStatut = check.isSelected() ? Statut.TERMINEE : Statut.A_FAIRE;
-                                model.updateSousTaskStatut(st.getId(), nouveauStatut);
-                            });
-
-                            stBox.getChildren().addAll(statutDot, stLabel, check);
-                            sousTachesBox.getChildren().add(stBox);
-                        }
-                        contenu.getChildren().add(sousTachesBox);
+                        stBox.getChildren().addAll(statutDot, stLabel, check);
+                        sousTachesBox.getChildren().add(stBox);
                     }
+                    contenu.getChildren().add(sousTachesBox);
                 }
             }
         }
+
         for (Map.Entry<Statut, VBox> entry : colonnes.entrySet()) {
             Statut statut = entry.getKey();
             VBox colonne = entry.getValue();
