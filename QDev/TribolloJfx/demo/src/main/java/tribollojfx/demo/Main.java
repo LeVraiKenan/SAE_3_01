@@ -326,6 +326,10 @@ public class Main extends Application implements TaskModelObservateur {
         priorite.setValue(Priorite.NORMALE);
         priorite.setPromptText("Sélectionnez une priorité");
 
+        ComboBox<Task> dependance = new ComboBox<>();
+        dependance.getItems().addAll(model.getTaches());
+        dependance.setPromptText("Ajout de dépendance");
+
         grid.add(new Label("Titre:"), 0, 0);
         grid.add(titre, 1, 0);
         grid.add(new Label("Description:"), 0, 1);
@@ -336,6 +340,8 @@ public class Main extends Application implements TaskModelObservateur {
         grid.add(fin, 1, 3);
         grid.add(new Label("Priorité:"), 0, 4);
         grid.add(priorite, 1, 4);
+        grid.add(new Label("Dépendance:"), 0, 5);
+        grid.add(dependance, 1, 5);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -356,6 +362,9 @@ public class Main extends Application implements TaskModelObservateur {
                         debut.getValue().atStartOfDay(),
                         fin.getValue().atStartOfDay()
                 );
+                if(dependance.getValue() != null) {
+                    t.addDependance(dependance.getValue());
+                }
                 t.changerStatut(statut);
                 return t;
             }

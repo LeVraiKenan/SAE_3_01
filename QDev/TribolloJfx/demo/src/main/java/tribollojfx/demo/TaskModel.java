@@ -53,12 +53,14 @@ public class TaskModel {
                }
             }
 
-            if (newStatut == Statut.EN_COURS || newStatut == Statut.TERMINEE) {
-                if (CountDependance != parent.getDependance().size()) {
+            if(parent.getDependance().size() != 0) {
+                if (CountDependance != parent.getDependance().size() || parent.getDependance().size() == 0) {
                     parent.changerStatut(Statut.A_FAIRE);
                 } else {
                     parent.changerStatut(newStatut);
                 }
+            } else {
+                parent.changerStatut(newStatut);
             }
 
             for (Task sousTask : parent.getSousTaches()) {
@@ -86,6 +88,15 @@ public class TaskModel {
             if (parent.getStatut() == Statut.EN_COURS || parent.getStatut() == Statut.TERMINEE) {
                 sousTask.changerStatut(parent.getStatut());
             }
+
+            notifier();
+            saveTasks();
+        }
+    }
+
+    public void ajouterDependance(Task encours, Task depend) {
+        if (encours != null) {
+            encours.addDependance(depend);
 
             notifier();
             saveTasks();
