@@ -21,7 +21,7 @@ public class TaskModel {
         for (Task task : loadedTasks) {
             if (task.getDateDebut() != null && task.getDateFin() != null) {
                 if (LocalDateTime.now().isAfter(task.getDateFin()) || LocalDateTime.now().isEqual(task.getDateFin())) {
-                    updateTaskStatut(task, Statut.TERMINEE);
+                    task.changerStatut(Statut.TERMINEE);
                 }
             }
         }
