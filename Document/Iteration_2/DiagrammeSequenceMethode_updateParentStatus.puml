@@ -1,0 +1,34 @@
+@startuml
+title Méthode privée - updateParentStatus()
+hide footbox
+
+participant "TaskModel" as Model
+participant "parent : Task" as Parent
+participant "Task" as ST
+
+[-> Model : updateParentStatus(parent)
+
+activate Model #LightBlue
+    Model -> Parent : getSousTaches()
+    activate Parent
+        return listeSousTaches
+
+        alt listeSousTaches non vide
+            loop pour chaque sousTache dans listeSousTaches
+                Model -> ST : getStatut()
+                activate ST
+                    return statut
+                deactivate ST
+            end
+        end
+
+        note over Model : Logique de décision du nouveau statut: \n- Toutes TERMINEE ?\n- Au moins une EN_COURS ?\n- Aucune commencée ?
+
+        Model -> Parent : changerStatut(nouveauStatut)
+        activate Parent
+            return void
+        deactivate Parent
+
+[<-- Model : void
+deactivate Model
+@enduml

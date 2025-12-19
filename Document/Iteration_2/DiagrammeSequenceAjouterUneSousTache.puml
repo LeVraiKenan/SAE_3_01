@@ -1,0 +1,53 @@
+@startuml
+title Iteration 2 - Ajout d'une Sous-tâche
+hide footbox
+
+Participant "Main" as M
+participant "TaskModel" as Model
+participant "Task (Parent)" as Parent
+participant "Task (Enfant)" as Enfant
+
+M -> Model : ajouterSousTask(parentId, enfant)
+activate Model
+
+    note right of Model : Récupération du Parent (via ID)
+    Model -> Model: getTaskById(parentID)
+    activate Model
+        Model <-- Model : Parent
+    deactivate Model
+
+    alt Parent existe
+        Model -> Parent : addSousTask(enfant)
+
+        activate Parent
+            Parent -> Enfant : setParentId(this.id)
+            activate Enfant
+                Enfant --> Parent : void
+            deactivate Enfant
+            Parent -> Parent : sousTaches.add(enfant)
+
+            Model <-- Parent
+        deactivate Parent
+
+        Model -> Model : tasks.put(enfant.getId(), enfant);
+
+        note right of Model : Héritage du statut
+
+        opt Parent est EN_COURS ou TERMINÉE
+            Model -> Parent : getStatut()
+            activate Parent
+                Model <-- Parent : statutParent
+            deactivate Parent
+
+            Model -> Enfant : changerStatut(statutParent)
+            activate Enfant
+            Model <-- Enfant : void
+            deactivate Enfant
+        end
+        Model -> Model : notifier()
+        Model -> Model : saveTasks()
+    end
+
+M <-- Model : void
+deactivate Model
+@enduml
