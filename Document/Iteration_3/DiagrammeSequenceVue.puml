@@ -1,0 +1,24 @@
+@startuml
+@startuml
+
+title Vue Tableau & Vue Liste
+
+activate Utilisateur
+
+Utilisateur -> Main: clic sur "Ajouter"
+
+activate Main
+
+Main -> Main: ouvrirDialogueAjout(statut)
+Main --> Utilisateur: affiche la boîte de dialogue
+Utilisateur -> Main: valide la création (OK)
+
+Utilisateur -> Main : clic sur "Vue Tableau"
+Main --> Utilisateur : Affichage sous frome d'un tableau
+
+Utilisateur -> Main : clic sur "Vue Liste"
+Main --> Utilisateur : Affichage sous frome d'une liste
+deactivate Main
+
+
+@enduml
