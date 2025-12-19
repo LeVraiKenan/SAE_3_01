@@ -18,6 +18,13 @@ public class TaskModel {
 
     private void loadTasks() {
         List<Task> loadedTasks = repository.loadAll();
+        for (Task task : loadedTasks) {
+            if (task.getDateDebut() != null && task.getDateFin() != null) {
+                if (LocalDateTime.now().isAfter(task.getDateFin()) || LocalDateTime.now().isEqual(task.getDateFin())) {
+                    updateTaskStatut(task, Statut.TERMINEE);
+                }
+            }
+        }
         tasks.addAll(loadedTasks);
     }
 
