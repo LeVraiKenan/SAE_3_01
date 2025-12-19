@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.scene.text.Text;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -172,6 +173,8 @@ public class Main extends Application implements TaskModelObservateur {
         carte.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 ouvrirDialogueEdition(t);
+            } else if (event.getClickCount() == 1) {
+                ouvrirDetailTask(t);
             }
         });
 
@@ -191,6 +194,70 @@ public class Main extends Application implements TaskModelObservateur {
                 model.ajouterSousTask(parent, sousTask);
             }
         });
+    }
+    private void ouvrirDetailTask(Task t) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Détails de la tâche : " + t.getTitre());
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        VBox layout = new VBox(15);
+        layout.setPadding(new Insets(20)); // 20 de padding Partout
+        layout.setPrefWidth(400);
+
+        // Titre et Statut
+        Label titre = new Label(t.getTitre());
+        titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Label labelStatut = new Label("Status:");
+        labelStatut.setStyle("-fx-font-size: 18px;");
+        Text statusText = new Text("["+ t.getStatut() +"]");
+
+        // Description
+        Label labelDesc = new Label("Description :");
+        labelDesc.setStyle("-fx-font-weight: bold;");
+        Text descText = new Text(t.getDescription() == null || t.getDescription().isEmpty()
+                ? "Aucune description fournie." : t.getDescription());
+        descText.setWrappingWidth(350); // Impose une limite de 350 pour forcer un retour à la ligne
+
+        // Liste des Dépendances
+        VBox dependancesBox = new VBox(5);
+        Label labelDep = new Label("Dépend de (" + t.getDependance().size() + ") :");
+        labelDep.setStyle("-fx-font-weight: bold;");
+        dependancesBox.getChildren().add(labelDep);
+
+        if (t.getDependance().isEmpty()) {
+            dependancesBox.getChildren().add(new Label("Aucune dépendance."));
+        } else {
+            // Parcourir toutes les dépendances de la tâche
+            for (Task dep : t.getDependance()) {
+                Label lDep = new Label("- " + dep.getTitre() + " (" + dep.getStatut() + ")");
+                if (dep.getStatut() != Statut.TERMINEE) {
+                    lDep.setTextFill(Color.RED); // Alerter en Rouge si bloquant
+                }
+                dependancesBox.getChildren().add(lDep);
+            }
+        }
+
+        // Liste des Sous-tâches
+        VBox sousTachesBox = new VBox(5);
+        Label labelST = new Label("Sous-tâches :");
+        labelST.setStyle("-fx-font-weight: bold;");
+        sousTachesBox.getChildren().add(labelST);
+
+        if (t.getSousTaches().isEmpty()) {
+            sousTachesBox.getChildren().add(new Label("Aucune sous-tâche."));
+        } else {
+            for (Task st : t.getSousTaches()) {
+                CheckBox cb = new CheckBox(st.getTitre() + " [" + st.getStatut() + "]");
+                cb.setSelected((st.getStatut() == Statut.TERMINEE)); // Coche la case
+                cb.setDisable(true); // Vue détail uniquement, pas d'édition ici
+                sousTachesBox.getChildren().add(cb);
+            }
+        }
+
+        layout.getChildren().addAll(titre, labelDesc, descText, dependancesBox, sousTachesBox);
+        dialog.getDialogPane().setContent(layout);
+        dialog.showAndWait();
     }
 
     private void ouvrirDialogueEdition(Task t) {
