@@ -1,5 +1,6 @@
 package tribollojfx.demo;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,13 @@ public class TaskModel {
 
     private void loadTasks() {
         List<Task> loadedTasks = repository.loadAll();
+        for (Task task : loadedTasks) {
+            if (task.getDateDebut() != null && task.getDateFin() != null) {
+                if (LocalDateTime.now().isAfter(task.getDateFin()) || LocalDateTime.now().isEqual(task.getDateFin())) {
+                    task.changerStatut(Statut.TERMINEE);
+                }
+            }
+        }
         tasks.addAll(loadedTasks);
     }
 
@@ -53,12 +61,22 @@ public class TaskModel {
                }
             }
 
-            if (newStatut == Statut.EN_COURS || newStatut == Statut.TERMINEE) {
-                if (CountDependance != parent.getDependance().size()) {
+            if(parent.getDependance().size() != 0) {
+                if (CountDependance != parent.getDependance().size() || parent.getDependance().size() == 0) {
                     parent.changerStatut(Statut.A_FAIRE);
                 } else {
+                    if (newStatut == Statut.EN_COURS) {
+                        parent.setDateDebut(LocalDateTime.now());
+                        parent.setDateFin(LocalDateTime.now().plusDays(parent.getDuree()));
+                    }
                     parent.changerStatut(newStatut);
                 }
+            } else {
+                if (newStatut == Statut.EN_COURS) {
+                    parent.setDateDebut(LocalDateTime.now());
+                    parent.setDateFin(LocalDateTime.now().plusDays(parent.getDuree()));
+                }
+                parent.changerStatut(newStatut);
             }
 
             for (Task sousTask : parent.getSousTaches()) {
@@ -86,6 +104,15 @@ public class TaskModel {
             if (parent.getStatut() == Statut.EN_COURS || parent.getStatut() == Statut.TERMINEE) {
                 sousTask.changerStatut(parent.getStatut());
             }
+
+            notifier();
+            saveTasks();
+        }
+    }
+
+    public void ajouterDependance(Task encours, Task depend) {
+        if (encours != null) {
+            encours.addDependance(depend);
 
             notifier();
             saveTasks();

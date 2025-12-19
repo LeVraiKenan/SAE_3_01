@@ -16,10 +16,16 @@ import javafx.scene.text.Text;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.lang.Integer.parseInt;
+
 public class Main extends Application implements TaskModelObservateur {
     private TaskModel model;
     private Map<Statut, VBox> colonnes;
     private Task draggedTask;
+
+    private BorderPane root;
+    private HBox vueTableauRoot;
+    private TableView<Task> vueListe;
 
     @Override
     public void start(Stage stage) {
@@ -38,8 +44,27 @@ public class Main extends Application implements TaskModelObservateur {
         colonnes.put(Statut.TERMINEE, colonneTerminee);
         colonnes.put(Statut.ARCHIVEE, colonneArchivee);
 
-        HBox root = new HBox(20, colonneAFaire, colonneEnCours, colonneTerminee, colonneArchivee);
-        root.setPadding(new Insets(20));
+        vueTableauRoot = new HBox(20, colonneAFaire, colonneEnCours, colonneTerminee, colonneArchivee);
+        vueTableauRoot.setPadding(new Insets(20));
+
+        vueListe = creerVueListe();
+
+        Button btnVueTableau = new Button("Vue tableau");
+        Button btnVueListe = new Button("Vue liste");
+
+        btnVueTableau.setOnAction(e -> root.setCenter(vueTableauRoot));
+        btnVueListe.setOnAction(e -> {
+            mettreAJourVueListe();
+            root.setCenter(vueListe);
+        });
+
+        HBox barreBoutons = new HBox(10, btnVueTableau, btnVueListe);
+        barreBoutons.setPadding(new Insets(10));
+        barreBoutons.setAlignment(Pos.CENTER_LEFT);
+
+        root = new BorderPane();
+        root.setTop(barreBoutons);
+        root.setCenter(vueTableauRoot);
 
         notifier(model.getTaches());
 
@@ -382,27 +407,28 @@ public class Main extends Application implements TaskModelObservateur {
         desc.setPromptText("Description");
         desc.setPrefRowCount(3);
 
-        DatePicker debut = new DatePicker();
-        debut.setValue(java.time.LocalDate.now());
-
-        DatePicker fin = new DatePicker();
-        fin.setValue(java.time.LocalDate.now().plusDays(7));
+        TextField duree = new TextField();
+        duree.setPromptText("Durée de la tâche");
 
         ComboBox<Priorite> priorite = new ComboBox<>();
         priorite.getItems().addAll(Priorite.values());
         priorite.setValue(Priorite.NORMALE);
         priorite.setPromptText("Sélectionnez une priorité");
 
+        ComboBox<Task> dependance = new ComboBox<>();
+        dependance.getItems().addAll(model.getTaches());
+        dependance.setPromptText("Ajout de dépendance");
+
         grid.add(new Label("Titre:"), 0, 0);
         grid.add(titre, 1, 0);
         grid.add(new Label("Description:"), 0, 1);
         grid.add(desc, 1, 1);
-        grid.add(new Label("Début:"), 0, 2);
-        grid.add(debut, 1, 2);
-        grid.add(new Label("Fin:"), 0, 3);
-        grid.add(fin, 1, 3);
-        grid.add(new Label("Priorité:"), 0, 4);
-        grid.add(priorite, 1, 4);
+        grid.add(new Label("Durée:"), 0, 2);
+        grid.add(duree, 1, 2);
+        grid.add(new Label("Priorité:"), 0, 3);
+        grid.add(priorite, 1, 3);
+        grid.add(new Label("Dépendance:"), 0, 4);
+        grid.add(dependance, 1, 4);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -420,9 +446,11 @@ public class Main extends Application implements TaskModelObservateur {
                         titre.getText().trim(),
                         desc.getText().trim(),
                         priorite.getValue(),
-                        debut.getValue().atStartOfDay(),
-                        fin.getValue().atStartOfDay()
+                        parseInt(duree.getText())
                 );
+                if(dependance.getValue() != null) {
+                    t.addDependance(dependance.getValue());
+                }
                 t.changerStatut(statut);
                 return t;
             }
@@ -430,6 +458,39 @@ public class Main extends Application implements TaskModelObservateur {
         });
 
         dialog.showAndWait().ifPresent(model::ajouterTask);
+    }
+
+    private TableView<Task> creerVueListe() {
+        TableView<Task> table = new TableView<>();
+
+        TableColumn<Task, String> colTitre = new TableColumn<>("Titre");
+        colTitre.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
+                data.getValue().getTitre()
+        ));
+
+        TableColumn<Task, String> colDescription = new TableColumn<>("Description");
+        colDescription.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
+                data.getValue().getDescription() == null ? "" : data.getValue().getDescription()
+        ));
+
+        TableColumn<Task, String> colPriorite = new TableColumn<>("Priorité");
+        colPriorite.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
+                data.getValue().getPriorite() == null ? "" : data.getValue().getPriorite().name()
+        ));
+
+        TableColumn<Task, String> colStatut = new TableColumn<>("Statut");
+        colStatut.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(
+                data.getValue().getStatut().name()
+        ));
+
+        table.getColumns().addAll(colTitre, colDescription, colPriorite, colStatut);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
+        return table;
+    }
+
+    private void mettreAJourVueListe() {
+        vueListe.getItems().setAll(model.getTaches());
     }
 
     @Override
@@ -506,6 +567,10 @@ public class Main extends Application implements TaskModelObservateur {
             VBox colonne = entry.getValue();
             Label titreLabel = (Label) colonne.getChildren().get(0);
             titreLabel.setText(getNomColonne(statut) + " (" + compteurs.get(statut) + ")");
+        }
+
+        if (vueListe != null && root.getCenter() == vueListe) {
+            mettreAJourVueListe();
         }
     }
 
