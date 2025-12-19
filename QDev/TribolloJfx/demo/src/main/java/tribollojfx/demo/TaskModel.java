@@ -1,5 +1,6 @@
 package tribollojfx.demo;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,9 +58,17 @@ public class TaskModel {
                 if (CountDependance != parent.getDependance().size() || parent.getDependance().size() == 0) {
                     parent.changerStatut(Statut.A_FAIRE);
                 } else {
+                    if (newStatut == Statut.EN_COURS) {
+                        parent.setDateDebut(LocalDateTime.now());
+                        parent.setDateFin(LocalDateTime.now().plusDays(parent.getDuree()));
+                    }
                     parent.changerStatut(newStatut);
                 }
             } else {
+                if (newStatut == Statut.EN_COURS) {
+                    parent.setDateDebut(LocalDateTime.now());
+                    parent.setDateFin(LocalDateTime.now().plusDays(parent.getDuree()));
+                }
                 parent.changerStatut(newStatut);
             }
 

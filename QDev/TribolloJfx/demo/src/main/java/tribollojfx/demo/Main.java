@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.lang.Integer.parseInt;
+
 public class Main extends Application implements TaskModelObservateur {
     private TaskModel model;
     private Map<Statut, VBox> colonnes;
@@ -315,11 +317,8 @@ public class Main extends Application implements TaskModelObservateur {
         desc.setPromptText("Description");
         desc.setPrefRowCount(3);
 
-        DatePicker debut = new DatePicker();
-        debut.setValue(java.time.LocalDate.now());
-
-        DatePicker fin = new DatePicker();
-        fin.setValue(java.time.LocalDate.now().plusDays(7));
+        TextField duree = new TextField();
+        duree.setPromptText("Durée de la tâche");
 
         ComboBox<Priorite> priorite = new ComboBox<>();
         priorite.getItems().addAll(Priorite.values());
@@ -334,14 +333,12 @@ public class Main extends Application implements TaskModelObservateur {
         grid.add(titre, 1, 0);
         grid.add(new Label("Description:"), 0, 1);
         grid.add(desc, 1, 1);
-        grid.add(new Label("Début:"), 0, 2);
-        grid.add(debut, 1, 2);
-        grid.add(new Label("Fin:"), 0, 3);
-        grid.add(fin, 1, 3);
-        grid.add(new Label("Priorité:"), 0, 4);
-        grid.add(priorite, 1, 4);
-        grid.add(new Label("Dépendance:"), 0, 5);
-        grid.add(dependance, 1, 5);
+        grid.add(new Label("Durée:"), 0, 2);
+        grid.add(duree, 1, 2);
+        grid.add(new Label("Priorité:"), 0, 3);
+        grid.add(priorite, 1, 3);
+        grid.add(new Label("Dépendance:"), 0, 4);
+        grid.add(dependance, 1, 4);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -359,8 +356,7 @@ public class Main extends Application implements TaskModelObservateur {
                         titre.getText().trim(),
                         desc.getText().trim(),
                         priorite.getValue(),
-                        debut.getValue().atStartOfDay(),
-                        fin.getValue().atStartOfDay()
+                        parseInt(duree.getText())
                 );
                 if(dependance.getValue() != null) {
                     t.addDependance(dependance.getValue());
