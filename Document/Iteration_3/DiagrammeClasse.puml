@@ -1,0 +1,123 @@
+@startuml
+Title Diagramme de Classes - Itération 3
+
+package "Model" {
+    enum Statut {
+        A_FAIRE
+        EN_COURS
+        TERMINEE
+        ARCHIVEE
+    }
+
+    enum Priorite {
+        BASSE
+        NORMALE
+        HAUTE
+        URGENTE
+    }
+
+    class Task {
+        - titre: String
+        - description: String
+        - statut: Statut
+        - priorite: Priorite
+        - dateDebut: LocalDateTime
+        - dateFin: LocalDateTime
+        - duree: int
+        - sousTaches: ArrayList<Task>
+        - dependances: ArrayList<Task>
+        + Task(String, String, Priorite, int)
+        + Task(String)
+        + changerStatut(Statut): void
+        + addSousTask(Task): void
+        + addDependance(Task): void
+        + estArchivee(): boolean
+        + toString(): String
+        + getSousTaches(): ArrayList<Task>
+        + getDependances(): ArrayList<Task>
+        + getDuree(): int
+        + setDateDebut(LocalDateTime): void
+        + setDateFin(LocalDateTime): void
+        + getDateFin(): LocalDateTime
+    }
+
+    Task --> Statut
+    Task --> Priorite
+    Task --> "dépendances\n0..*" Task : dependances
+    Task --> "sous-tâches\n0..*" Task : sousTaches
+}
+
+package "Controleur" {
+    class ArchiveControleur {
+        - model: TaskModel
+        + ArchiveControleur(TaskModel)
+        + archiver(Task): void
+        + restaurer(Task): void
+        + getArchives(): List<Task>
+    }
+
+    class TaskModel {
+        - tasks: ArrayList<Task>
+        - observers: List<TaskModelObservateur>
+        - repository: SerializedTaskRepository
+        + TaskModel()
+        + getTaches(): List<Task>
+        + getTachesByStatut(Statut): List<Task>
+        + ajouterTask(Task): void
+        + ajouterSousTask(Task, Task): void
+        + ajouterDependance(Task, Task): void
+        + updateTaskStatut(Task, Statut): void
+        + updateSousTaskStatut(Task, Statut): void
+        + supprimerTask(Task): void
+        + addObserver(TaskModelObservateur): void
+        + notifier(): void
+        - updateParentStatus(Task): void
+        - loadTasks(): void
+        - saveTasks(): void
+    }
+
+    interface TaskModelObservateur {
+        + notifier(List<Task>): void
+    }
+
+    class SerializedTaskRepository {
+        + saveAll(List<Task>): void
+        + loadAll(): List<Task>
+    }
+
+    ArchiveControleur --> TaskModel : utilise
+    TaskModel --> Task : contient
+    TaskModel --> TaskModelObservateur : notifie
+    TaskModel --> SerializedTaskRepository : utilise
+    SerializedTaskRepository ..> Task : sérialise
+}
+
+package "Vue" {
+    class Main {
+        - model: TaskModel
+        - draggedTask: Task
+        - colonnes: Map<Statut, VBox>
+        - vueTableauRoot: HBox
+        - vueListe: TableView<Task>
+        - root: BorderPane
+        + start(Stage): void
+        + notifier(List<Task>): void
+        + main(String[]): void
+        - creerColonne(String, Statut): VBox
+        - creerCarte(Task): HBox
+        - creerVueListe(): TableView<Task>
+        - mettreAJourVueListe(): void
+        - configurerDragDrop(VBox, Statut): void
+        - ouvrirDialogueAjout(Statut): void
+        - ouvrirDialogueEdition(Task): void
+        - ouvrirDialogueSousTache(Task): void
+        - getNomColonne(Statut): String
+        - updateStatutLabel(Label, Statut): void
+    }
+
+    Main --> TaskModel : «create»
+    Main --> Task : affiche
+    Main --> Statut : colonnes
+    Main -^ TaskModelObservateur
+}
+@enduml

@@ -1,0 +1,46 @@
+@startuml Diagramme_Dependances
+title Gestion des Dépendances
+
+actor Utilisateur
+participant "Main" as Main
+participant "TaskModel" as Model
+participant "Task" as Task
+
+Utilisateur -> Main : Drag-drop tâche vers EN_COURS
+Main -> Model : updateTaskStatut(task, EN_COURS)
+activate Model
+
+Model -> Task : getDependance()
+activate Task
+Task --> Model : listeDependances
+deactivate Task
+
+loop Pour chaque dépendance
+    Model -> Task : getStatut()
+    activate Task
+    Task --> Model : statut
+    deactivate Task
+end
+
+alt Toutes les dépendances sont TERMINEE
+    Model -> Task : changerStatut(EN_COURS)
+    activate Task
+    Task --> Model :
+    deactivate Task
+
+    Model -> Task : setDateDebut(now)
+    Model -> Task : setDateFin(now + durée)
+else Au moins une dépendance non terminée
+    Model -> Task : changerStatut(A_FAIRE)
+    activate Task
+    Task --> Model :
+    deactivate Task
+end
+
+Model -> Model : notifier()
+Model -> Model : saveTasks()
+Model --> Main :
+deactivate Model
+
+Main --> Utilisateur : Interface mise à jour (tâche bloquée/avancée)
+@enduml

@@ -198,7 +198,7 @@ public class Main extends Application implements TaskModelObservateur {
         carte.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 ouvrirDialogueEdition(t);
-            } else if (event.getButton() == MouseButton.SECONDARY && event.getClickCount() == 1) { // Click Droit
+            } else if (event.getButton() == MouseButton.SECONDARY && event.getClickCount() == 1) {
                     ouvrirDetailTask(t);
             }
         });
