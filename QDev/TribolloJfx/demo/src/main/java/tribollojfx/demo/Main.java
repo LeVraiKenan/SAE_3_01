@@ -226,10 +226,9 @@ public class Main extends Application implements TaskModelObservateur {
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
         VBox layout = new VBox(15);
-        layout.setPadding(new Insets(20)); // 20 de padding Partout
+        layout.setPadding(new Insets(20));
         layout.setPrefWidth(400);
 
-        // Titre et Statut
         Label titre = new Label(t.getTitre());
         titre.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
@@ -237,14 +236,12 @@ public class Main extends Application implements TaskModelObservateur {
         labelStatut.setStyle("-fx-font-size: 18px;");
         Text statusText = new Text("["+ t.getStatut() +"]");
 
-        // Description
         Label labelDesc = new Label("Description :");
         labelDesc.setStyle("-fx-font-weight: bold;");
         Text descText = new Text(t.getDescription() == null || t.getDescription().isEmpty()
                 ? "Aucune description fournie." : t.getDescription());
-        descText.setWrappingWidth(350); // Impose une limite de 350 pour forcer un retour à la ligne
+        descText.setWrappingWidth(350);
 
-        // Liste des Dépendances
         VBox dependancesBox = new VBox(5);
         Label labelDep = new Label("Dépend de (" + t.getDependance().size() + ") :");
         labelDep.setStyle("-fx-font-weight: bold;");
@@ -253,17 +250,15 @@ public class Main extends Application implements TaskModelObservateur {
         if (t.getDependance().isEmpty()) {
             dependancesBox.getChildren().add(new Label("Aucune dépendance."));
         } else {
-            // Parcourir toutes les dépendances de la tâche
             for (Task dep : t.getDependance()) {
                 Label lDep = new Label("- " + dep.getTitre() + " (" + dep.getStatut() + ")");
                 if (dep.getStatut() != Statut.TERMINEE) {
-                    lDep.setTextFill(Color.RED); // Alerter en Rouge si bloquant
+                    lDep.setTextFill(Color.RED);
                 }
                 dependancesBox.getChildren().add(lDep);
             }
         }
 
-        // Liste des Sous-tâches
         VBox sousTachesBox = new VBox(5);
         Label labelST = new Label("Sous-tâches :");
         labelST.setStyle("-fx-font-weight: bold;");
@@ -274,8 +269,8 @@ public class Main extends Application implements TaskModelObservateur {
         } else {
             for (Task st : t.getSousTaches()) {
                 CheckBox cb = new CheckBox(st.getTitre() + " [" + st.getStatut() + "]");
-                cb.setSelected((st.getStatut() == Statut.TERMINEE)); // Coche la case
-                cb.setDisable(true); // Vue détail uniquement, pas d'édition ici
+                cb.setSelected((st.getStatut() == Statut.TERMINEE));
+                cb.setDisable(true);
                 sousTachesBox.getChildren().add(cb);
             }
         }
