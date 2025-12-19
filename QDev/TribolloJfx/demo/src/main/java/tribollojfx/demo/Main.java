@@ -280,7 +280,7 @@ public class Main extends Application implements TaskModelObservateur {
             }
         }
 
-        layout.getChildren().addAll(titre, labelDesc, descText, dependancesBox, sousTachesBox);
+        layout.getChildren().addAll(titre, labelStatut, statusText, labelDesc, descText, labelDep, dependancesBox, labelST, sousTachesBox);
         dialog.getDialogPane().setContent(layout);
         dialog.showAndWait();
     }
