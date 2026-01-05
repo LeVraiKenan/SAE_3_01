@@ -1,0 +1,65 @@
+@startuml
+title Iteration 3 - Affichage des détails d'une tâche
+hide footbox
+
+actor Utilisateur
+participant "Main" as Main
+participant "Task" as Task
+
+
+Utilisateur -> Main : Clic Droit sur une tâche
+activate Main
+    Main -> Main : handle(event)
+    activate Main
+        Main -> Main : ouvrirDetailTask(task)
+        activate Main #LightBlue
+            note right of Main : Récupération des données :\n titre, statut, etc.
+
+            Main -> Task : getDescription()
+            activate Task
+                Main <-- Task : description
+            deactivate Task
+
+            Main -> Task : getDependance()
+            activate Task
+                Main <-- Task : listeDep
+            deactivate Task
+
+            '' DEPENDANCES
+            loop Pour chaque dépendance (dep) dans listeDep
+                Main -> Task : dep.getStatut()
+                activate Task
+                    Main <-- Task : statut
+                deactivate Task
+
+                opt statut != TERMINEE
+                    note right of Main : Dépendance bloquante :\nAppliquer couleur ROUGE
+                end
+            end
+
+            Main -> Task : getSousTaches()
+            activate Task
+                Main <-- Task : listeST
+            deactivate Task
+
+            '' SOUS-TACHES
+            loop Pour chaque sousTache (st) dans listeST
+                Main -> Task : st.getStatut()
+                activate Task
+                    Main <-- Task : statut
+                deactivate Task
+
+                note right of Main
+                    Créer une CheckBox de la sous-tâche
+                        (Non modifiable par l'utilisateur)
+                end note
+
+                opt statut == TERMINEE
+                    note right of Main : Cocher la CheckBox
+                end
+            end
+        deactivate Main
+        Utilisateur <-- Main : Affichage de la fenêtre (Dialog)
+    deactivate Main
+deactivate Main
+@enduml
