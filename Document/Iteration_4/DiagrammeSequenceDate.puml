@@ -1,0 +1,71 @@
+@startuml Diagramme_Duree
+title Gestion de la Durée
+
+actor Utilisateur
+participant "Main" as Main
+participant "TaskModel" as Model
+participant "Task" as Task
+
+Utilisateur -> Main : Créer tâche (durée=5)
+Main -> Model : ajouterTask(task)
+activate Model
+
+Model -> Task : setDuree(5)
+activate Task
+Task --> Model :
+deactivate Task
+
+Model -> Model : notifier()
+Model -> Model : saveTasks()
+Model --> Main :
+deactivate Model
+
+Main --> Utilisateur : Tâche créée (A_FAIRE)
+
+note over Utilisateur, Model : Plus tard...
+
+Utilisateur -> Main : Drag-drop vers EN_COURS (si dépendances OK)
+Main -> Model : updateTaskStatut(task, EN_COURS)
+activate Model
+
+Model -> Task : setDateDebut(LocalDateTime.now())
+Model -> Task : setDateFin(LocalDateTime.now().plusDays(5))
+
+Model -> Task : changerStatut(EN_COURS)
+activate Task
+Task --> Model :
+deactivate Task
+
+Model -> Model : notifier()
+Model -> Model : saveTasks()
+Model --> Main :
+deactivate Model
+
+Main --> Utilisateur : Tâche en cours (dates définies)
+
+note over Utilisateur, Model : Au prochain démarrage...
+
+Main -> Model : TaskModel()
+activate Model
+
+Model -> Model : loadTasks()
+loop Pour chaque tâche
+    Model -> Task : getDateFin()
+    activate Task
+    Task --> Model : dateFin
+    deactivate Task
+
+    alt LocalDateTime.now() >= dateFin
+        Model -> Task : changerStatut(TERMINEE)
+        activate Task
+        Task --> Model :
+        deactivate Task
+    end
+end
+
+Model -> Model : notifier()
+Model --> Main :
+deactivate Model
+
+Main --> Utilisateur : Tâches automatiquement terminées
+@enduml
