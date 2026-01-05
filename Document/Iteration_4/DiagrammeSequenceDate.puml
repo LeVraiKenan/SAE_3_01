@@ -6,7 +6,7 @@ participant "Main" as Main
 participant "TaskModel" as Model
 participant "Task" as Task
 
-Utilisateur -> Main : Créer tâche (durée=5)
+Utilisateur -> Main : Créer tâche (choix date de début et durée=5)
 Main -> Model : ajouterTask(task)
 activate Model
 
@@ -28,8 +28,8 @@ Utilisateur -> Main : Drag-drop vers EN_COURS (si dépendances OK)
 Main -> Model : updateTaskStatut(task, EN_COURS)
 activate Model
 
-Model -> Task : setDateDebut(LocalDateTime.now())
-Model -> Task : setDateFin(LocalDateTime.now().plusDays(5))
+Model -> Task : setDateDebut(DateDebut)
+Model -> Task : setDateFin(DateDebut.plusDays(5))
 
 Model -> Task : changerStatut(EN_COURS)
 activate Task
