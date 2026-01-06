@@ -11,15 +11,15 @@ public class Task implements Serializable {
     private Priorite priorite;
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
-    private int duree;
     private ArrayList<Task> sousTaches = new ArrayList<>();
     private ArrayList<Task> Dependance = new ArrayList<>();
 
-    public Task(String titre, String description, Priorite priorite, int duree) {
+    public Task(String titre, String description, Priorite priorite, LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.titre = titre;
         this.description = description;
         this.priorite = priorite;
-        this.duree = duree;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
         this.statut = Statut.A_FAIRE;
     }
 
@@ -44,7 +44,6 @@ public class Task implements Serializable {
     public LocalDateTime getDateFin() { return dateFin; }
     public ArrayList<Task> getSousTaches() { return sousTaches; }
     public ArrayList<Task> getDependance() {return Dependance;  }
-    public int getDuree() { return duree; }
 
     public void setTitre(String titre) { this.titre = titre; }
     public void setDescription(String description) { this.description = description; }

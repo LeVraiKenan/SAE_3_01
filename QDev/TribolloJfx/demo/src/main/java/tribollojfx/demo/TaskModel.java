@@ -1,6 +1,5 @@
 package tribollojfx.demo;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +17,6 @@ public class TaskModel {
 
     private void loadTasks() {
         List<Task> loadedTasks = repository.loadAll();
-        for (Task task : loadedTasks) {
-            if (task.getDateDebut() != null && task.getDateFin() != null) {
-                if (LocalDateTime.now().isAfter(task.getDateFin()) || LocalDateTime.now().isEqual(task.getDateFin())) {
-                    task.changerStatut(Statut.TERMINEE);
-                }
-            }
-        }
         tasks.addAll(loadedTasks);
     }
 
@@ -54,28 +46,20 @@ public class TaskModel {
 
     public void updateTaskStatut(Task parent, Statut newStatut) {
         if (parent != null) {
-            int CountDependance = 0;
+            int countDependance = 0;
             for (Task depend : parent.getDependance()) {
-               if (depend.getStatut() == Statut.TERMINEE) {
-                   CountDependance++;
-               }
+                if (depend.getStatut() == Statut.TERMINEE) {
+                    countDependance++;
+                }
             }
 
-            if(parent.getDependance().size() != 0) {
-                if (CountDependance != parent.getDependance().size() || parent.getDependance().size() == 0) {
+            if (parent.getDependance().size() != 0) {
+                if (countDependance != parent.getDependance().size()) {
                     parent.changerStatut(Statut.A_FAIRE);
                 } else {
-                    if (newStatut == Statut.EN_COURS) {
-                        parent.setDateDebut(LocalDateTime.now());
-                        parent.setDateFin(LocalDateTime.now().plusDays(parent.getDuree()));
-                    }
                     parent.changerStatut(newStatut);
                 }
             } else {
-                if (newStatut == Statut.EN_COURS) {
-                    parent.setDateDebut(LocalDateTime.now());
-                    parent.setDateFin(LocalDateTime.now().plusDays(parent.getDuree()));
-                }
                 parent.changerStatut(newStatut);
             }
 
@@ -123,17 +107,17 @@ public class TaskModel {
         if (parent.getSousTaches().isEmpty()) return;
 
         boolean toutesTerminees = true;
-        int NombreTacheTerminees = 0;
+        int nombreTacheNonTerminees = 0;
         boolean auMoinsUneEnCours = false;
 
         for (Task sousT : parent.getSousTaches()) {
             if (sousT.getStatut() != Statut.TERMINEE) {
                 toutesTerminees = false;
-                NombreTacheTerminees++;
+                nombreTacheNonTerminees++;
             }
         }
 
-        if (NombreTacheTerminees < parent.getSousTaches().size()) {
+        if (nombreTacheNonTerminees < parent.getSousTaches().size()) {
             auMoinsUneEnCours = true;
         }
 

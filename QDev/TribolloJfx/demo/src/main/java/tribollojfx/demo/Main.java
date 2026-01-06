@@ -10,13 +10,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
-
-import static java.lang.Integer.parseInt;
 
 public class Main extends Application implements TaskModelObservateur {
     private TaskModel model;
@@ -116,6 +114,13 @@ public class Main extends Application implements TaskModelObservateur {
         });
     }
 
+    private boolean estEnRetard(Task t) {
+        if (t.getDateFin() == null) return false;
+        LocalDate aujourdHui = LocalDate.now();
+        LocalDate fin = t.getDateFin().toLocalDate();
+        return fin.isBefore(aujourdHui) && t.getStatut() != Statut.TERMINEE;
+    }
+
     private HBox creerCarte(Task t) {
         HBox carte = new HBox(10);
         carte.setPadding(new Insets(8));
@@ -132,6 +137,19 @@ public class Main extends Application implements TaskModelObservateur {
         VBox infos = new VBox(3);
         Label titre = new Label(t.getTitre());
 
+        if (estEnRetard(t)) {
+            carte.setStyle("-fx-background-color: #ffe6e6; -fx-border-color: red;");
+            Label retardIcon = new Label("⚠");
+            retardIcon.setTextFill(Color.RED);
+            retardIcon.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+            retardIcon.setTooltip(new Tooltip("Tâche en retard"));
+            HBox titreBox = new HBox(5, retardIcon, titre);
+            infos.getChildren().add(titreBox);
+        } else {
+            carte.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: gray;");
+            infos.getChildren().add(titre);
+        }
+
         String sousTachesInfo = "";
         if (!t.getSousTaches().isEmpty()) {
             int terminees = 0;
@@ -141,15 +159,13 @@ public class Main extends Application implements TaskModelObservateur {
                 if (st.getStatut() == Statut.EN_COURS) enCours++;
             }
             sousTachesInfo = " [" + terminees + "/" + t.getSousTaches().size() + "]";
-
             if (enCours > 0) {
                 sousTachesInfo += " (en cours)";
             }
         }
 
         Label details = new Label(t.getSousTaches().size() + " sous-tâches" + sousTachesInfo);
-
-        infos.getChildren().addAll(titre, details);
+        infos.getChildren().add(details);
 
         HBox actions = new HBox(5);
 
@@ -199,7 +215,7 @@ public class Main extends Application implements TaskModelObservateur {
             if (event.getClickCount() == 2) {
                 ouvrirDialogueEdition(t);
             } else if (event.getButton() == MouseButton.SECONDARY && event.getClickCount() == 1) {
-                    ouvrirDetailTask(t);
+                ouvrirDetailTask(t);
             }
         });
 
@@ -220,6 +236,7 @@ public class Main extends Application implements TaskModelObservateur {
             }
         });
     }
+
     private void ouvrirDetailTask(Task t) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Détails de la tâche : " + t.getTitre());
@@ -234,7 +251,7 @@ public class Main extends Application implements TaskModelObservateur {
 
         Label labelStatut = new Label("Status:");
         labelStatut.setStyle("-fx-font-size: 18px;");
-        Text statusText = new Text("["+ t.getStatut() +"]");
+        Text statusText = new Text("[" + t.getStatut() + "]");
 
         Label labelDesc = new Label("Description :");
         labelDesc.setStyle("-fx-font-weight: bold;");
@@ -402,8 +419,12 @@ public class Main extends Application implements TaskModelObservateur {
         desc.setPromptText("Description");
         desc.setPrefRowCount(3);
 
-        TextField duree = new TextField();
-        duree.setPromptText("Durée de la tâche");
+        DatePicker debut = new DatePicker();
+        debut.setPromptText("Date de début");
+        debut.setValue(LocalDate.now());
+
+        DatePicker fin = new DatePicker();
+        fin.setPromptText("Date de fin");
 
         ComboBox<Priorite> priorite = new ComboBox<>();
         priorite.getItems().addAll(Priorite.values());
@@ -418,12 +439,14 @@ public class Main extends Application implements TaskModelObservateur {
         grid.add(titre, 1, 0);
         grid.add(new Label("Description:"), 0, 1);
         grid.add(desc, 1, 1);
-        grid.add(new Label("Durée:"), 0, 2);
-        grid.add(duree, 1, 2);
-        grid.add(new Label("Priorité:"), 0, 3);
-        grid.add(priorite, 1, 3);
-        grid.add(new Label("Dépendance:"), 0, 4);
-        grid.add(dependance, 1, 4);
+        grid.add(new Label("Début:"), 0, 2);
+        grid.add(debut, 1, 2);
+        grid.add(new Label("Fin:"), 0, 3);
+        grid.add(fin, 1, 3);
+        grid.add(new Label("Priorité:"), 0, 4);
+        grid.add(priorite, 1, 4);
+        grid.add(new Label("Dépendance:"), 0, 5);
+        grid.add(dependance, 1, 5);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -431,19 +454,38 @@ public class Main extends Application implements TaskModelObservateur {
         Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okButton.setDisable(true);
 
-        titre.textProperty().addListener((observable, oldValue, newValue) -> {
-            okButton.setDisable(newValue.trim().isEmpty());
-        });
+        Runnable validate = () -> {
+            boolean titreOk = !titre.getText().trim().isEmpty();
+            boolean debutOk = debut.getValue() != null && !debut.getValue().isBefore(LocalDate.now());
+            boolean finOk = fin.getValue() != null && !fin.getValue().isBefore(debut.getValue());
+            okButton.setDisable(!(titreOk && debutOk && finOk));
+        };
+
+        titre.textProperty().addListener((obs, o, n) -> validate.run());
+        debut.valueProperty().addListener((obs, o, n) -> validate.run());
+        fin.valueProperty().addListener((obs, o, n) -> validate.run());
 
         dialog.setResultConverter(btnType -> {
             if (btnType == ButtonType.OK) {
+                if (debut.getValue().isBefore(LocalDate.now())) {
+                    new Alert(Alert.AlertType.ERROR,
+                            "La date de début doit être aujourd'hui ou plus tard.").showAndWait();
+                    return null;
+                }
+                if (fin.getValue().isBefore(debut.getValue())) {
+                    new Alert(Alert.AlertType.ERROR,
+                            "La date de fin doit être après ou égale à la date de début.").showAndWait();
+                    return null;
+                }
+
                 Task t = new Task(
                         titre.getText().trim(),
                         desc.getText().trim(),
                         priorite.getValue(),
-                        parseInt(duree.getText())
+                        debut.getValue().atStartOfDay(),
+                        fin.getValue().atStartOfDay()
                 );
-                if(dependance.getValue() != null) {
+                if (dependance.getValue() != null) {
                     t.addDependance(dependance.getValue());
                 }
                 t.changerStatut(statut);
