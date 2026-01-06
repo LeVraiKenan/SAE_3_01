@@ -13,6 +13,7 @@ public class Task implements Serializable {
     private LocalDateTime dateFin;
     private ArrayList<Task> sousTaches = new ArrayList<>();
     private ArrayList<Task> Dependance = new ArrayList<>();
+    private int colonnePersoId = 0;
 
     public Task(String titre, String description, Priorite priorite, LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.titre = titre;
@@ -56,6 +57,9 @@ public class Task implements Serializable {
     public boolean estArchivee() {
         return this.statut == Statut.ARCHIVEE;
     }
+
+    public int getColonnePersoId() { return colonnePersoId; }
+    public void setColonnePersoId(int id) { this.colonnePersoId = id; }
 
     @Override
     public String toString() {

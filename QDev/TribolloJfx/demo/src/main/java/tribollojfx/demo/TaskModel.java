@@ -2,8 +2,12 @@ package tribollojfx.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 public class TaskModel {
+    private static final int MAX_COLONNES_PERSO = 2;
+    private TreeMap<Integer,String> colonnesPersonnalisees;
+
     private ArrayList<Task> tasks;
     private List<TaskModelObservateur> observers;
     private SerializedTaskRepository repository;
@@ -11,6 +15,7 @@ public class TaskModel {
     public TaskModel() {
         this.repository = new SerializedTaskRepository();
         this.tasks = new ArrayList<>();
+        this.colonnesPersonnalisees = new TreeMap<>();
         loadTasks();
         this.observers = new ArrayList<>();
     }
@@ -32,6 +37,10 @@ public class TaskModel {
             }
         }
         return result;
+    }
+
+    public TreeMap<Integer, String> getColonnesPersonnalisees() {
+        return colonnesPersonnalisees;
     }
 
     private void saveTasks() {
@@ -144,6 +153,22 @@ public class TaskModel {
             notifier();
             saveTasks();
         }
+    }
+
+    public void ajouterColonnePersonnalisee(String nomColonne) {
+        if (colonnesPersonnalisees.size() >= MAX_COLONNES_PERSO) {
+            System.out.println("Impossible : limite de " + MAX_COLONNES_PERSO + " colonnes atteinte.");
+            return;
+        }
+
+        int nouvelId = 1;
+        if (!colonnesPersonnalisees.isEmpty()) {
+            nouvelId = colonnesPersonnalisees.lastKey() + 1;
+        }
+
+        colonnesPersonnalisees.put(nouvelId, nomColonne);
+
+        notifier();
     }
 
     public void notifier() {
