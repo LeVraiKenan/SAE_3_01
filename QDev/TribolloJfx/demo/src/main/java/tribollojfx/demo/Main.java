@@ -659,6 +659,21 @@ public class Main extends Application implements TaskModelObservateur {
         table.getColumns().addAll(colTitre, colDescription, colPriorite, colStatut);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
+        // mise en forme des lignes pour les tâches en retard
+        table.setRowFactory(tv -> new TableRow<Task>() {
+            @Override
+            protected void updateItem(Task item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setStyle("");
+                } else if (estEnRetard(item)) {
+                    setStyle("-fx-background-color: #ffe6e6; -fx-border-color: red;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
+
         return table;
     }
 
