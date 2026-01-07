@@ -1,4 +1,4 @@
-package tribollojfx.demo;
+package tribollojfx.model;
 
 public enum Priorite {
     BASSE,

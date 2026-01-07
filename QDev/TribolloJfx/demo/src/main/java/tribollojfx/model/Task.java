@@ -1,8 +1,8 @@
-package tribollojfx.demo;
+package tribollojfx.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Task implements Serializable {
     private String titre;
@@ -11,11 +11,11 @@ public class Task implements Serializable {
     private Priorite priorite;
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
-    private ArrayList<Task> sousTaches = new ArrayList<>();
-    private ArrayList<Task> Dependance = new ArrayList<>();
+    private ArrayList<Task> dependances = new ArrayList<>();
     private int colonnePersoId = 0;
 
-    public Task(String titre, String description, Priorite priorite, LocalDateTime dateDebut, LocalDateTime dateFin) {
+    public Task(String titre, String description, Priorite priorite,
+                LocalDateTime dateDebut, LocalDateTime dateFin) {
         this.titre = titre;
         this.description = description;
         this.priorite = priorite;
@@ -29,12 +29,12 @@ public class Task implements Serializable {
         this.statut = Statut.A_FAIRE;
     }
 
-    public void addSousTask(Task task) {
-        this.sousTaches.add(task);
+    public void addDependance(Task task) {
+        this.dependances.add(task);
     }
 
-    public void addDependance(Task task) {
-        this.Dependance.add(task);
+    public void removeDependance(Task task) {
+        this.dependances.remove(task);
     }
 
     public String getTitre() { return titre; }
@@ -43,8 +43,7 @@ public class Task implements Serializable {
     public Priorite getPriorite() { return priorite; }
     public LocalDateTime getDateDebut() { return dateDebut; }
     public LocalDateTime getDateFin() { return dateFin; }
-    public ArrayList<Task> getSousTaches() { return sousTaches; }
-    public ArrayList<Task> getDependance() {return Dependance;  }
+    public ArrayList<Task> getDependances() { return dependances; }
 
     public void setTitre(String titre) { this.titre = titre; }
     public void setDescription(String description) { this.description = description; }

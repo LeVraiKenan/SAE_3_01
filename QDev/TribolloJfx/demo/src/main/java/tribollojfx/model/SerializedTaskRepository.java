@@ -1,11 +1,11 @@
-package tribollojfx.demo;
+package tribollojfx.model;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SerializedTaskRepository {
-    private static final String FILE_NAME = "tasks";
+    private static final String FILE_NAME = "tasks.dat";
 
     public void saveAll(List<Task> tasks) {
         try (ObjectOutputStream oos = new ObjectOutputStream(
@@ -24,7 +24,11 @@ public class SerializedTaskRepository {
 
         try (ObjectInputStream ois = new ObjectInputStream(
                 new FileInputStream(file))) {
-            return (List<Task>) ois.readObject();
+            Object obj = ois.readObject();
+            if (obj instanceof List) {
+                return (List<Task>) obj;
+            }
+            return new ArrayList<>();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             return new ArrayList<>();

@@ -1,11 +1,11 @@
-package tribollojfx.demo;
+package tribollojfx.controller;
 
-import java.util.List;
+import tribollojfx.model.*;
 
-public class ArchiveControleur {
+public class ArchiveController {
     private TaskModel model;
 
-    public ArchiveControleur(TaskModel model) {
+    public ArchiveController(TaskModel model) {
         this.model = model;
     }
 
@@ -15,9 +15,5 @@ public class ArchiveControleur {
 
     public void restaurer(Task t) {
         model.updateTaskStatut(t, Statut.A_FAIRE);
-    }
-
-    public List<Task> getArchives() {
-        return model.getTachesByStatut(Statut.ARCHIVEE);
     }
 }
