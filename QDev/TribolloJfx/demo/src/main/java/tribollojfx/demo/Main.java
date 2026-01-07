@@ -19,18 +19,22 @@ import java.util.*;
 public class Main extends Application implements TaskModelObservateur {
     private TaskModel model;
     private Map<Statut, VBox> colonnes;
+    private Map<Integer, VBox> colonnesPerso;
     private Task draggedTask;
 
     private BorderPane root;
     private HBox vueTableauRoot;
     private TableView<Task> vueListe;
+    private ColonneControleur colonneControleur;
 
     @Override
     public void start(Stage stage) {
         model = new TaskModel();
         model.addObserver(this);
 
+        colonneControleur = new ColonneControleur(model);
         colonnes = new HashMap<>();
+        colonnesPerso = new HashMap<>();
 
         VBox colonneAFaire = creerColonne("À FAIRE", Statut.A_FAIRE);
         VBox colonneEnCours = creerColonne("EN COURS", Statut.EN_COURS);
@@ -56,7 +60,22 @@ public class Main extends Application implements TaskModelObservateur {
             root.setCenter(vueListe);
         });
 
-        HBox barreBoutons = new HBox(10, btnVueTableau, btnVueListe);
+        Button btnAjoutColonne = new Button("+");
+        btnAjoutColonne.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        btnAjoutColonne.setOnAction(e -> {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Nouvelle Colonne");
+            dialog.setHeaderText("Ajouter une colonne personnalisée");
+            dialog.setContentText("Nom :");
+            dialog.showAndWait().ifPresent(nom -> {
+                colonneControleur.creerColonne(nom);
+            });
+        });
+
+        VBox containerBouton = new VBox(btnAjoutColonne);
+        containerBouton.setPadding(new Insets(10));
+
+        HBox barreBoutons = new HBox(10, btnVueTableau, btnVueListe, btnAjoutColonne);
         barreBoutons.setPadding(new Insets(10));
         barreBoutons.setAlignment(Pos.CENTER_LEFT);
 
@@ -87,6 +106,28 @@ public class Main extends Application implements TaskModelObservateur {
         colonne.getChildren().addAll(titreLabel, contenu, btnAjouter);
 
         configurerDragDrop(contenu, statut);
+
+        return colonne;
+    }
+
+    private VBox creerColonnePersonnalisee(String titre, int id) {
+        VBox colonne = new VBox(10);
+        colonne.setPadding(new Insets(10));
+        colonne.setPrefWidth(230);
+
+        colonne.setStyle("-fx-background-color: #e3f2fd; -fx-background-radius: 5;");
+
+        Label titreLabel = new Label(titre);
+        titreLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #1565c0;");
+
+        VBox contenu = new VBox(5);
+        contenu.setId("contenu-perso-" + id);
+
+        Button btnAjouter = new Button("+ Ajouter");
+        btnAjouter.setMaxWidth(Double.MAX_VALUE);
+        btnAjouter.setOnAction(e -> ouvrirDialogueAjoutPerso(id));
+
+        colonne.getChildren().addAll(titreLabel, contenu, btnAjouter);
 
         return colonne;
     }
@@ -497,6 +538,101 @@ public class Main extends Application implements TaskModelObservateur {
         dialog.showAndWait().ifPresent(model::ajouterTask);
     }
 
+    private void ouvrirDialogueAjoutPerso(int idColonne){
+        Dialog<Task> dialog = new Dialog<>();
+        dialog.setTitle("Nouvelle tâche");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        TextField titre = new TextField();
+        titre.setPromptText("Titre de la tâche");
+
+        TextArea desc = new TextArea();
+        desc.setPromptText("Description");
+        desc.setPrefRowCount(3);
+
+        DatePicker debut = new DatePicker();
+        debut.setPromptText("Date de début");
+        debut.setValue(LocalDate.now());
+
+        DatePicker fin = new DatePicker();
+        fin.setPromptText("Date de fin");
+
+        ComboBox<Priorite> priorite = new ComboBox<>();
+        priorite.getItems().addAll(Priorite.values());
+        priorite.setValue(Priorite.NORMALE);
+        priorite.setPromptText("Sélectionnez une priorité");
+
+        ComboBox<Task> dependance = new ComboBox<>();
+        dependance.getItems().addAll(model.getTaches());
+        dependance.setPromptText("Ajout de dépendance");
+
+        grid.add(new Label("Titre:"), 0, 0);
+        grid.add(titre, 1, 0);
+        grid.add(new Label("Description:"), 0, 1);
+        grid.add(desc, 1, 1);
+        grid.add(new Label("Début:"), 0, 2);
+        grid.add(debut, 1, 2);
+        grid.add(new Label("Fin:"), 0, 3);
+        grid.add(fin, 1, 3);
+        grid.add(new Label("Priorité:"), 0, 4);
+        grid.add(priorite, 1, 4);
+        grid.add(new Label("Dépendance:"), 0, 5);
+        grid.add(dependance, 1, 5);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+
+        Runnable validate = () -> {
+            boolean titreOk = !titre.getText().trim().isEmpty();
+            boolean debutOk = debut.getValue() != null && !debut.getValue().isBefore(LocalDate.now());
+            boolean finOk = fin.getValue() != null && !fin.getValue().isBefore(debut.getValue());
+            okButton.setDisable(!(titreOk && debutOk && finOk));
+        };
+
+        titre.textProperty().addListener((obs, o, n) -> validate.run());
+        debut.valueProperty().addListener((obs, o, n) -> validate.run());
+        fin.valueProperty().addListener((obs, o, n) -> validate.run());
+
+        dialog.setResultConverter(btnType -> {
+            if (btnType == ButtonType.OK) {
+                if (debut.getValue().isBefore(LocalDate.now())) {
+                    new Alert(Alert.AlertType.ERROR,
+                            "La date de début doit être aujourd'hui ou plus tard.").showAndWait();
+                    return null;
+                }
+                if (fin.getValue().isBefore(debut.getValue())) {
+                    new Alert(Alert.AlertType.ERROR,
+                            "La date de fin doit être après ou égale à la date de début.").showAndWait();
+                    return null;
+                }
+
+                Task t = new Task(
+                        titre.getText().trim(),
+                        desc.getText().trim(),
+                        priorite.getValue(),
+                        debut.getValue().atStartOfDay(),
+                        fin.getValue().atStartOfDay()
+                );
+                if (dependance.getValue() != null) {
+                    t.addDependance(dependance.getValue());
+                }
+                t.setColonnePersoId(idColonne);
+                t.changerStatut(Statut.A_FAIRE);
+                return t;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(model::ajouterTask);
+    }
+
     private TableView<Task> creerVueListe() {
         TableView<Task> table = new TableView<>();
 
@@ -530,9 +666,37 @@ public class Main extends Application implements TaskModelObservateur {
         vueListe.getItems().setAll(model.getTaches());
     }
 
+    private void reconstruireTableau(){
+        vueTableauRoot.getChildren().clear();
+
+        vueTableauRoot.getChildren().add(colonnes.get(Statut.A_FAIRE));
+        vueTableauRoot.getChildren().add(colonnes.get(Statut.EN_COURS));
+        vueTableauRoot.getChildren().add(colonnes.get(Statut.TERMINEE));
+
+        model.getColonnesPersonnalisees().forEach((id, titre) -> {
+            VBox columnBox = creerColonnePersonnalisee(titre, id);
+            colonnesPerso.put(id, columnBox);
+            vueTableauRoot.getChildren().add(columnBox);
+        });
+
+        vueTableauRoot.getChildren().add(colonnes.get(Statut.ARCHIVEE));
+    }
+
     @Override
     public void notifier(List<Task> tasks) {
+        int nbColonnesModel = 4 + model.getColonnesPersonnalisees().size();
+        int nbColonnesPresent = vueTableauRoot.getChildren().size();
+
+        if (nbColonnesModel != nbColonnesPresent) {
+            reconstruireTableau();
+        }
+
         for (VBox colonne : colonnes.values()) {
+            VBox contenu = (VBox) colonne.getChildren().get(1);
+            contenu.getChildren().clear();
+        }
+
+        for (VBox colonne : colonnesPerso.values()) {
             VBox contenu = (VBox) colonne.getChildren().get(1);
             contenu.getChildren().clear();
         }
@@ -543,13 +707,23 @@ public class Main extends Application implements TaskModelObservateur {
         }
 
         for (Task t : tasks) {
-            VBox colonne = colonnes.get(t.getStatut());
-            if (colonne != null) {
-                VBox contenu = (VBox) colonne.getChildren().get(1);
+            VBox contenu = null;
+            if (t.getColonnePersoId() > 0) {
+                VBox colonnePerso = colonnesPerso.get(t.getColonnePersoId());
+                if (colonnePerso != null) {
+                    contenu = (VBox) colonnePerso.getChildren().get(1);
+                }
+            } else {
+                VBox colonne = colonnes.get(t.getStatut());
+                if (colonne != null) {
+                    contenu = (VBox) colonne.getChildren().get(1);
+                    compteurs.put(t.getStatut(), compteurs.get(t.getStatut()) + 1);
+                }
+            }
+
+            if (contenu != null) {
                 HBox carte = creerCarte(t);
                 contenu.getChildren().add(carte);
-
-                compteurs.put(t.getStatut(), compteurs.get(t.getStatut()) + 1);
 
                 if (!t.getSousTaches().isEmpty()) {
                     VBox sousTachesBox = new VBox(2);
@@ -583,7 +757,6 @@ public class Main extends Application implements TaskModelObservateur {
                         }
 
                         Label stLabel = new Label(st.getTitre());
-
                         CheckBox check = new CheckBox();
                         check.setSelected(st.getStatut() == Statut.TERMINEE);
                         check.setOnAction(e -> {
