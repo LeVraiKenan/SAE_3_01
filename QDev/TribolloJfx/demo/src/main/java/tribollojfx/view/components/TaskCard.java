@@ -144,14 +144,14 @@ public class TaskCard {
             archiveBtn.setTooltip(new Tooltip("Restaurer"));
             archiveBtn.setStyle("-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280;");
         } else {
-            archiveBtn.setText("📁");
+            archiveBtn.setText("A");
             archiveBtn.setTooltip(new Tooltip("Archiver"));
             archiveBtn.setStyle("-fx-background-color: #f3f4f6; -fx-text-fill: #6b7280;");
         }
 
         archiveBtn.setOnAction(e -> toggleArchive());
 
-        Button dependanceBtn = new Button("🔗");
+        Button dependanceBtn = new Button("d");
         dependanceBtn.setTooltip(new Tooltip("Ajouter dépendance"));
         dependanceBtn.setStyle("-fx-background-color: #8b5cf6; -fx-text-fill: white;");
         dependanceBtn.setOnAction(e -> ajouterDependance());
