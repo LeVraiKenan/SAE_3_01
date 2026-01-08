@@ -12,7 +12,7 @@ public class Task implements Serializable {
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
     private ArrayList<Task> dependances = new ArrayList<>();
-    private int colonnePersoId = 0;
+    private int colonnePersoId = 0; // Conserver
 
     public Task(String titre, String description, Priorite priorite,
                 LocalDateTime dateDebut, LocalDateTime dateFin) {
@@ -44,21 +44,16 @@ public class Task implements Serializable {
     public LocalDateTime getDateDebut() { return dateDebut; }
     public LocalDateTime getDateFin() { return dateFin; }
     public ArrayList<Task> getDependances() { return dependances; }
+    public int getColonnePersoId() { return colonnePersoId; }
 
     public void setTitre(String titre) { this.titre = titre; }
     public void setDescription(String description) { this.description = description; }
     public void setPriorite(Priorite priorite) { this.priorite = priorite; }
     public void setDateDebut(LocalDateTime dateDebut) { this.dateDebut = dateDebut; }
     public void setDateFin(LocalDateTime dateFin) { this.dateFin = dateFin; }
+    public void setColonnePersoId(int id) { this.colonnePersoId = id; }
 
     public void changerStatut(Statut statut) { this.statut = statut; }
-
-    public boolean estArchivee() {
-        return this.statut == Statut.ARCHIVEE;
-    }
-
-    public int getColonnePersoId() { return colonnePersoId; }
-    public void setColonnePersoId(int id) { this.colonnePersoId = id; }
 
     @Override
     public String toString() {

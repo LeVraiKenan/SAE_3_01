@@ -7,14 +7,18 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 
 public class MainController {
     private Stage primaryStage;
@@ -26,11 +30,13 @@ public class MainController {
     private ColumnContainerView containerView;
     private NotificationView notificationView;
     private Timeline notificationChecker;
+    private ColonneController colonneController;
 
     public MainController(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.model = new TaskModel();
         this.columns = new HashMap<>();
+        this.colonneController = new ColonneController(model);
     }
 
     public void start() {
@@ -58,49 +64,134 @@ public class MainController {
         listView = new TaskTableView();
         listView.updateTasks(model.getTaches());
 
-        containerView = new ColumnContainerView(columns);
+        containerView = new ColumnContainerView(columns, model, colonneController);
         root.setCenter(containerView.getView());
 
+        notificationView = new NotificationView(model);
+
+        HBox topBar = createTopBar();
+        root.setTop(topBar);
+    }
+
+    private HBox createTopBar() {
+        HBox topBar = new HBox(15);
+        topBar.setPadding(new Insets(15, 25, 15, 25));
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setStyle("-fx-background-color: white; " +
+                "-fx-border-color: #e5e7eb; " +
+                "-fx-border-width: 0 0 1 0;");
+
+        Button btnTableau = createStyledButton("📋 Tableau", "#3b82f6");
+        Button btnListe = createStyledButton("📝 Liste", "#8b5cf6");
+        Button btnGantt = createStyledButton("📊 Gantt", "#10b981");
+
+        Button btnAjoutColonne = new Button("+ Colonne");
+        btnAjoutColonne.setStyle("-fx-background-color: #8b5cf6; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-weight: 600; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 10 20; " +
+                "-fx-border-radius: 8;");
+        btnAjoutColonne.setOnAction(e -> ajouterColonne());
+
+        Button btnNotifications = notificationView.getNotificationButton();
+        btnNotifications.setTooltip(new javafx.scene.control.Tooltip("Notifications"));
+        btnNotifications.setOnAction(e -> showNotificationPanel());
+
+        btnGantt.setOnAction(e -> {
+            GanttController gc = new GanttController(model);
+            gc.showGanttView();
+        });
+
+        btnTableau.setOnAction(e -> showTableView());
+        btnListe.setOnAction(e -> showListView());
+
+        topBar.getChildren().addAll(btnTableau, btnListe, btnGantt,
+                btnAjoutColonne, new javafx.scene.layout.Region(),
+                btnNotifications);
+        HBox.setHgrow(topBar.getChildren().get(topBar.getChildren().size() - 2), Priority.ALWAYS);
+
+        return topBar;
+    }
+
+    private void ajouterColonne() {
+        if (!colonneController.peutAjouterColonne()) {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.WARNING);
+            alert.setTitle("Limite atteinte");
+            alert.setHeaderText("Nombre maximum de colonnes atteint");
+            alert.setContentText("Vous ne pouvez pas créer plus de 2 colonnes personnalisées.");
+            alert.showAndWait();
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Nouvelle Colonne");
+        dialog.setHeaderText("Ajouter une colonne personnalisée");
+        dialog.setContentText("Nom :");
+
+        dialog.showAndWait().ifPresent(nom -> {
+            if (!nom.trim().isEmpty()) {
+                colonneController.creerColonne(nom.trim());
+                refreshInterface();
+            }
+        });
+    }
+
+    private void refreshInterface() {
         try {
-            notificationView = new NotificationView(model);
+            containerView = new ColumnContainerView(columns, model, colonneController);
+
+            root.setCenter(containerView.getView());
+
+            if (mainObserver != null) {
+                model.removeObserver(mainObserver);
+            }
+            mainObserver = new MainObserver(model, columns, containerView);
+
+            model.notifyObservers();
+
         } catch (Exception e) {
-            System.err.println("Erreur création NotificationView: " + e.getMessage());
-            notificationView = null;
-        }
-
-        ButtonBarView buttonBar = new ButtonBarView(model, root, columns, this, notificationView);
-        root.setTop(buttonBar.getView());
-
-        if (notificationView != null && notificationView.getNotificationButton() != null) {
-            notificationView.getNotificationButton().setOnAction(e -> {
-                showNotificationPanel();
-            });
+            System.err.println("Erreur refreshFullInterface: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
+    private Button createStyledButton(String text, String color) {
+        Button btn = new Button(text);
+        btn.setStyle("-fx-background-color: " + color + "; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-weight: 600; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 10 20; " +
+                "-fx-border-radius: 8; " +
+                "-fx-cursor: hand;");
 
-    private void setupNotificationChecker() {
-        notificationChecker = new Timeline(
-                new KeyFrame(Duration.minutes(1), e -> {
-                    model.getNotificationManager().verifierNotifications();
-                    notificationView.refresh();
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle("-fx-background-color: " + darkenColor(color) + "; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-weight: 600; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 10 20; " +
+                    "-fx-border-radius: 8; " +
+                    "-fx-cursor: hand;");
+        });
 
-                    checkUrgentNotifications();
-                })
-        );
-        notificationChecker.setCycleCount(Animation.INDEFINITE);
-        notificationChecker.play();
+        btn.setOnMouseExited(e -> {
+            btn.setStyle("-fx-background-color: " + color + "; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-weight: 600; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 10 20; " +
+                    "-fx-border-radius: 8; " +
+                    "-fx-cursor: hand;");
+        });
+
+        return btn;
     }
 
-    private void checkUrgentNotifications() {
-        long urgentesNonLues = model.getNotificationManager().getNotificationsNonLues().stream()
-                .filter(notif -> notif.getType() == Notification.Type.RETARD_DEBUT ||
-                        notif.getType() == Notification.Type.RETARD_FIN)
-                .count();
-
-        if (urgentesNonLues > 0 && !primaryStage.isFocused()) {
-            System.out.println(urgentesNonLues + " notification(s) urgente(s) !");
-        }
+    private String darkenColor(String hexColor) {
+        return hexColor.replaceFirst("#", "#55");
     }
 
     private void showNotificationPanel() {
@@ -142,10 +233,21 @@ public class MainController {
 
     private void setupObservers() {
         try {
-            mainObserver = new MainObserver(model, columns);
+            mainObserver = new MainObserver(model, columns, containerView);
         } catch (Exception e) {
             System.err.println("Erreur setupObservers: " + e.getMessage());
         }
+    }
+
+    private void setupNotificationChecker() {
+        notificationChecker = new Timeline(
+                new KeyFrame(Duration.minutes(1), e -> {
+                    model.getNotificationManager().verifierNotifications();
+                    notificationView.refresh();
+                })
+        );
+        notificationChecker.setCycleCount(Animation.INDEFINITE);
+        notificationChecker.play();
     }
 
     private void setupStage() {

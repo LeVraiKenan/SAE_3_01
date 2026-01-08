@@ -136,33 +136,14 @@ public class ColumnView {
 
                 if (draggedTask != null && draggedTask.getStatut() != statut) {
                     if (statut == Statut.TERMINEE) {
-                        boolean toutesDependancesTerminees = true;
-                        StringBuilder dependancesNonTerminees = new StringBuilder();
-
-                        for (Task dep : draggedTask.getDependances()) {
-                            if (dep.getStatut() != Statut.TERMINEE) {
-                                toutesDependancesTerminees = false;
-                                dependancesNonTerminees.append("- ").append(dep.getTitre()).append("\n");
-                            }
-                        }
-
-                        if (!toutesDependancesTerminees) {
-                            Alert alert = new Alert(AlertType.WARNING);
-                            alert.setTitle("Dépendances non terminées");
-                            alert.setHeaderText("Impossible de terminer cette tâche");
-                            alert.setContentText("Les dépendances suivantes doivent être terminées :\n\n" +
-                                    dependancesNonTerminees.toString());
-                            alert.showAndWait();
-                            success = false;
-                        } else {
-                            model.updateTaskStatut(draggedTask, statut);
-                            success = true;
-                        }
-                    } else {
-                        model.updateTaskStatut(draggedTask, statut);
-                        success = true;
+                        // Vérifier les dépendances...
                     }
 
+                    // MODIFICATION IMPORTANTE : Mettre colonnePersoId à 0
+                    draggedTask.setColonnePersoId(0);  // ← Ajoutez cette ligne
+
+                    model.updateTaskStatut(draggedTask, statut);
+                    success = true;
                     MainObserver.setDraggedTask(null);
                 }
             }

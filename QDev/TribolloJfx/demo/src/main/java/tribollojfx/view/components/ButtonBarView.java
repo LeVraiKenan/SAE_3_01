@@ -37,7 +37,6 @@ public class ButtonBarView {
         Button btnTableau = createStyledButton("📋 Tableau", "#3b82f6");
         Button btnListe = createStyledButton("📝 Liste", "#8b5cf6");
         Button btnGantt = createStyledButton("📊 Gantt", "#10b981");
-        Button btnArchives = createStyledButton("🗃 Archives", "#6b7280");
 
         Button btnNotifications = notificationView.getNotificationButton();
         btnNotifications.setTooltip(new javafx.scene.control.Tooltip("Notifications"));
@@ -50,7 +49,7 @@ public class ButtonBarView {
         btnTableau.setOnAction(e -> mainController.showTableView());
         btnListe.setOnAction(e -> mainController.showListView());
 
-        view.getChildren().addAll(btnTableau, btnListe, btnGantt, btnArchives, new javafx.scene.layout.Region(), btnNotifications);
+        view.getChildren().addAll(btnTableau, btnListe, btnGantt, new javafx.scene.layout.Region(), btnNotifications);
         HBox.setHgrow(view.getChildren().get(view.getChildren().size() - 2), javafx.scene.layout.Priority.ALWAYS);
     }
 

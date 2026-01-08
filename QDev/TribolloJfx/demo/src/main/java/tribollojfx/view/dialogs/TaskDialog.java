@@ -9,10 +9,16 @@ import java.time.LocalDate;
 public class TaskDialog extends Dialog<Task> {
     private TaskModel model;
     private Statut statut;
+    private Integer colonnePersoId;
 
     public TaskDialog(TaskModel model, Statut statut) {
+        this(model, statut, null);
+    }
+
+    public TaskDialog(TaskModel model, Statut statut, Integer colonnePersoId) {
         this.model = model;
         this.statut = statut;
+        this.colonnePersoId = colonnePersoId;
 
         setTitle("Nouvelle tâche");
 
@@ -89,6 +95,11 @@ public class TaskDialog extends Dialog<Task> {
                 }
 
                 t.changerStatut(statut);
+
+                if (colonnePersoId != null) {
+                    t.setColonnePersoId(colonnePersoId);
+                }
+
                 return t;
             }
             return null;

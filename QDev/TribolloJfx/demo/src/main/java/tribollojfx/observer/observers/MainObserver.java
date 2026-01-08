@@ -9,85 +9,49 @@ import java.util.Map;
 
 public class MainObserver implements TaskObserver {
     private Map<Statut, ColumnView> columns;
+    private ColumnContainerView containerView;
     private TaskModel model;
     private static Task draggedTask;
 
-    public MainObserver(TaskModel model, Map<Statut, ColumnView> columns) {
+    public MainObserver(TaskModel model, Map<Statut, ColumnView> columns,
+                        ColumnContainerView containerView) {
         this.model = model;
         this.columns = columns;
+        this.containerView = containerView;
         model.addObserver(this);
-        setupGlobalDragDrop();
-    }
-
-    private void setupGlobalDragDrop() {
-        for (ColumnView sourceColumn : columns.values()) {
-            if (sourceColumn == null) continue;
-            for (ColumnView targetColumn : columns.values()) {
-                if (targetColumn == null || sourceColumn == targetColumn) continue;
-                setupColumnDragDrop(sourceColumn, targetColumn);
-            }
-        }
-    }
-
-    private void setupColumnDragDrop(ColumnView source, ColumnView target) {
-        target.getContent().setOnDragOver(event -> {
-            if (event.getGestureSource() != target.getContent() &&
-                    event.getDragboard().hasString() &&
-                    event.getDragboard().getString().equals("task")) {
-
-                event.acceptTransferModes(TransferMode.MOVE);
-                target.getContent().setStyle("-fx-background-color: rgba(59, 130, 246, 0.1); " +
-                        "-fx-border-color: #3b82f6; " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 8;");
-            }
-            event.consume();
-        });
-
-        target.getContent().setOnDragExited(event -> {
-            target.getContent().setStyle("");
-            event.consume();
-        });
-
-        target.getContent().setOnDragDropped(event -> {
-            Dragboard db = event.getDragboard();
-            boolean success = false;
-
-            if (db.hasString() && db.getString().equals("task") && draggedTask != null) {
-                model.updateTaskStatut(draggedTask, target.getStatut());
-                success = true;
-                draggedTask = null;
-            }
-
-            target.getContent().setStyle("");
-            event.setDropCompleted(success);
-            event.consume();
-        });
-    }
-
-    public static void setDraggedTask(Task task) {
-        draggedTask = task;
-    }
-
-    public static Task getDraggedTask() {
-        return draggedTask;
     }
 
     @Override
     public void onTasksChanged(List<Task> tasks) {
+        Map<Integer, PersoColumnView> persoColumns = containerView.getPersoColumns();
+
         int[] counts = new int[Statut.values().length];
-        for (Task task : tasks) {
-            counts[task.getStatut().ordinal()]++;
+
+        for (ColumnView column : columns.values()) {
+            column.getContent().getChildren().clear();
         }
 
-        for (Map.Entry<Statut, ColumnView> entry : columns.entrySet()) {
-            Statut statut = entry.getKey();
-            ColumnView column = entry.getValue();
+        for (PersoColumnView persoColumn : persoColumns.values()) {
+            persoColumn.getContent().getChildren().clear();
+        }
 
-            column.getContent().getChildren().clear();
+        for (Task task : tasks) {
+            if (task.getColonnePersoId() > 0) {
+                PersoColumnView persoColumn = persoColumns.get(task.getColonnePersoId());
+                if (persoColumn != null) {
+                    TaskCard card = new TaskCard(task, model);
+                    persoColumn.getContent().getChildren().add(card.getView());
 
-            for (Task task : tasks) {
-                if (task.getStatut() == statut) {
+                    if (!task.getDependances().isEmpty()) {
+                        DependanceBox dependanceBox = new DependanceBox(task, model);
+                        persoColumn.getContent().getChildren().add(dependanceBox.getView());
+                    }
+                }
+            } else {
+                counts[task.getStatut().ordinal()]++;
+
+                ColumnView column = columns.get(task.getStatut());
+                if (column != null) {
                     TaskCard card = new TaskCard(task, model);
                     column.getContent().getChildren().add(card.getView());
 
@@ -97,8 +61,27 @@ public class MainObserver implements TaskObserver {
                     }
                 }
             }
+        }
 
+        for (Map.Entry<Statut, ColumnView> entry : columns.entrySet()) {
+            Statut statut = entry.getKey();
+            ColumnView column = entry.getValue();
             column.updateTitle(counts[statut.ordinal()]);
         }
+
+        for (Map.Entry<Integer, PersoColumnView> entry : persoColumns.entrySet()) {
+            int colonneId = entry.getKey();
+            PersoColumnView persoColumn = entry.getValue();
+            int count = model.getTachesParColonnePerso(colonneId).size();
+            persoColumn.updateTitle(count);
+        }
+    }
+
+    public static void setDraggedTask(Task task) {
+        draggedTask = task;
+    }
+
+    public static Task getDraggedTask() {
+        return draggedTask;
     }
 }

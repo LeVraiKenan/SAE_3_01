@@ -32,10 +32,10 @@ public class TaskModel {
         return new ArrayList<>(tasks);
     }
 
-    public List<Task> getTachesByStatut(Statut statut) {
+    public List<Task> getTachesParColonnePerso(int idColonne) {
         List<Task> result = new ArrayList<>();
         for (Task task : tasks) {
-            if (task.getStatut() == statut) {
+            if (task.getColonnePersoId() == idColonne) {
                 result.add(task);
             }
         }
@@ -59,6 +59,10 @@ public class TaskModel {
 
     public void updateTaskStatut(Task task, Statut newStatut) {
         if (task != null) {
+            if (newStatut != Statut.ARCHIVEE) {
+                task.setColonnePersoId(0);
+            }
+
             if (newStatut == Statut.TERMINEE) {
                 boolean toutesDependancesTerminees = true;
                 for (Task dependance : task.getDependances()) {
@@ -162,6 +166,15 @@ public class TaskModel {
         }
     }
 
+    public void deplacerVersColonnePerso(Task task, int idColonne) {
+        if (task != null) {
+            task.setColonnePersoId(idColonne);
+            saveTasks();
+            notificationManager.verifierNotifications();
+            notifyObservers();
+        }
+    }
+
     public void ajouterColonnePersonnalisee(String nomColonne) {
         if (colonnesPersonnalisees.size() >= MAX_COLONNES_PERSO) {
             System.out.println("Impossible : limite de " + MAX_COLONNES_PERSO + " colonnes atteinte.");
@@ -174,6 +187,20 @@ public class TaskModel {
         }
 
         colonnesPersonnalisees.put(nouvelId, nomColonne);
+        notificationManager.verifierNotifications();
+        notifyObservers();
+    }
+
+    public void supprimerColonnePersonnalisee(int idColonne) {
+        colonnesPersonnalisees.remove(idColonne);
+
+        for (Task task : tasks) {
+            if (task.getColonnePersoId() == idColonne) {
+                task.setColonnePersoId(0);
+            }
+        }
+
+        saveTasks();
         notificationManager.verifierNotifications();
         notifyObservers();
     }
