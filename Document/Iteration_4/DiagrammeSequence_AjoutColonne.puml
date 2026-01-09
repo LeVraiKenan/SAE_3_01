@@ -1,0 +1,55 @@
+@startuml
+title Ajout simple d'une colonne
+hide footbox
+
+actor Utilisateur
+participant "Main" as Main
+participant "colonneControleur : ColonneControleur" as Ctrl
+participant "model : TaskModel" as Model
+
+Utilisateur -> Main : Clic sur le bouton "+"
+activate Main
+    ' Ouvre une boîte de dialogue de saisie
+    Main -> Main : Récupérer nom saisi ("Test")
+    Main -> Ctrl : creerColonne("Test")
+
+    activate Ctrl
+        Ctrl -> Model : ajouterColonnePersonnalisee("Test")
+
+        activate Model
+            Model -> Model : put(nouvelId, "Test")
+            Model -> Main : notifier()
+
+            activate Main #LightBlue
+                alt nbColonnesModel != nbColonnesPresent
+                    Main -> Main : reconstruireTableau()
+                    activate Main
+                        Main -> Model : getColonnesPersonnalisees()
+                        Main <-- Model : listeColonnesPersos
+                    deactivate
+                end
+
+                loop Pour chaque Tâche t
+                    Main -> Main : Identifier la colonne cible (Standard ou Personnalisée)
+
+                    opt Contenu != null
+                        Main -> Main : Créer et Ajouter dans la Colonne : Carte tâche (HBox)
+
+                        opt t a des sous-tâches
+                            Main -> Main : Trier & Générer UI des Sous-tâches
+                        end
+                    end
+                end
+
+            deactivate Main
+
+        Ctrl <-- Model
+        deactivate Model
+
+    Main <-- Ctrl
+    deactivate Ctrl
+
+Utilisateur <-- Main : Affichage mis à jour
+deactivate Main
+
+@enduml
